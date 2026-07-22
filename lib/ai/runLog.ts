@@ -23,10 +23,18 @@ const LOG_DIR = path.join(process.cwd(), 'ai-config', 'logs');
 const LOG_FILE = path.join(LOG_DIR, 'agent-runs.jsonl');
 
 export async function appendAgentRunLog(log: AgentRunLog) {
-  await fs.mkdir(LOG_DIR, { recursive: true });
-  await fs.appendFile(LOG_FILE, `${JSON.stringify(log)}\n`, 'utf8');
-}
+  try {
+    await fs.mkdir(LOG_DIR, { recursive: true });
+    await fs.appendFile(LOG_FILE, JSON.stringify(log) + String.fromCharCode(10), 'utf8');
+  } catch (error) {
+    const code = (error as NodeJS.ErrnoException).code;
 
+    // Vercel functions run on a read-only deployment filesystem. Logging must
+    // not turn an otherwise successful AI response into a failed request.
+    if (process.env.VERCEL || code === 'EROFS' || code === 'EPERM') return;
+    throw error;
+  }
+}
 export async function readAgentRunLogs(limit = 50): Promise<AgentRunLog[]> {
   try {
     const content = await fs.readFile(LOG_FILE, 'utf8');

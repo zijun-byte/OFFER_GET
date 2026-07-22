@@ -872,6 +872,7 @@ function extractSkills(input: string) {
     [/用户需求|需求分析/i, '用户需求分析'],
     [/数据分析|SQL|Excel/i, '数据分析'],
     [/Figma|Axure|原型/i, '原型设计'],
+    [/Codex/i, 'AI 编程协作'],
   ];
 
   return [...new Set(skillMap.filter(([pattern]) => pattern.test(input)).map(([, skill]) => skill))];
