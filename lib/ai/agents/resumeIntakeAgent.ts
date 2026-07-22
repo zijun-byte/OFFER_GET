@@ -53,7 +53,7 @@ export async function runResumeIntakeAgent({
         input: { answer, currentResumeData, nextStep, stepId },
       });
 
-      patch = result.output.patch || {};
+      patch = normalizeIntakePatch(stepId, result.output.patch || {}, answer);
       nextQuestion = result.output.nextQuestion?.trim() || nextQuestion;
       if (hasUsefulPatch(stepId, patch)) {
         mode = 'ai';
@@ -142,6 +142,55 @@ function toEntries(multiple: Array<Partial<ResumeExperience>> | undefined, singl
   return Array.isArray(multiple) && multiple.length > 0 ? multiple : single ? [single] : [];
 }
 
+function normalizeIntakePatch(stepId: GuidedStepId, patch: IntakePatch, answer: string): IntakePatch {
+  if (stepId !== 'experience') return patch;
+
+  const entries = toEntries(patch.experiences, patch.experience);
+  if (entries.length === 0) return patch;
+
+  const facts = extractExplicitExperienceFacts(answer);
+  const normalizedEntries = entries.map((entry, index) => {
+    // Only correct fields with information the user explicitly supplied.
+    const fact = facts[index] || (facts.length === 1 ? facts[0] : undefined);
+    const organization = clean(entry.organization);
+    const role = cleanRole(entry.role);
+
+    return {
+      ...entry,
+      organization: fact?.organization && !isReliableOrganization(organization) ? fact.organization : organization,
+      role: fact?.role && (!role || role !== clean(entry.role)) ? fact.role : role,
+    };
+  });
+
+  return { ...patch, experiences: normalizedEntries, experience: undefined };
+}
+
+function extractExplicitExperienceFacts(answer: string) {
+  const facts: Array<{ organization: string; role: string }> = [];
+  const organizationPattern = /在[ \t]*([^，。；;\n]{2,30}?)(?=(?:上过班|工作过|工作|任职|实习|就职|入职|担任))/g;
+  let match: RegExpExecArray | null;
+
+  while ((match = organizationPattern.exec(answer)) !== null) {
+    const organization = clean(match[1]);
+    const nearbyText = answer.slice(match.index, Math.min(answer.length, match.index + 100));
+    const role = cleanRole(
+      nearbyText.match(/(?:担任(?:的是)?|作为|职位是|任职为)[ \t]*([^，。；;\n]{2,30})/)?.[1] || '',
+    );
+    if (isReliableOrganization(organization)) facts.push({ organization, role });
+  }
+
+  return facts;
+}
+
+function isReliableOrganization(value: string) {
+  return value.length >= 2
+    && value.length <= 30
+    && !/(公司中|更多|担任|负责|工作内容|实习生|职位|岗位|的是)/.test(value);
+}
+
+function cleanRole(value: unknown) {
+  return clean(value).replace(/^(?:担任(?:的是)?|作为|职位是|任职为|的是)[ \t]*/, '').trim();
+}
 function toResumeEntry(item: Partial<ResumeExperience>, stepId: 'experience' | 'project', index: number): ResumeExperience {
   return {
     id: clean(item.id) || `${stepId}-intake-${Date.now()}-${index}`,
