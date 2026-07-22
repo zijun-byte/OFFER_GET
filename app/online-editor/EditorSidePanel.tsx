@@ -235,6 +235,14 @@ type DraftSkill = {
 };
 
 type AgentDraft = {
+  basics?: {
+    name: string;
+  };
+  education?: {
+    school: string;
+    degree: string;
+    endDate: string;
+  };
   targetRole?: string;
   skills: DraftSkill[];
   experience?: {
@@ -270,7 +278,7 @@ function AgentComposer({
     }
 
     const nextDraft = createAgentDraft(input);
-    if (!nextDraft.targetRole && nextDraft.skills.length === 0 && !nextDraft.experience && !nextDraft.project) {
+    if (!nextDraft.basics && !nextDraft.education && !nextDraft.targetRole && nextDraft.skills.length === 0 && !nextDraft.experience && !nextDraft.project) {
       setDraft(null);
       setAnalysisStatus('暂未识别到可写入字段。可以补充岗位、项目、实习、工具或技能关键词后再试。');
       return;
@@ -293,7 +301,25 @@ function AgentComposer({
 
       return {
         ...data,
-        basics: draft.targetRole ? { ...data.basics, targetRole: draft.targetRole } : data.basics,
+        basics: {
+          ...data.basics,
+          ...(draft.basics?.name ? { name: draft.basics.name } : {}),
+          ...(draft.targetRole ? { targetRole: draft.targetRole } : {}),
+        },
+        education: draft.education
+          ? [
+              {
+                id: 'edu-agent-' + Date.now(),
+                school: draft.education.school,
+                major: '',
+                degree: draft.education.degree,
+                startDate: '',
+                endDate: draft.education.endDate,
+                highlights: [],
+              },
+              ...data.education,
+            ]
+          : data.education,
         experiences: nextExperiences,
         projects: nextProjects,
         skills: nextSkills,
@@ -301,7 +327,7 @@ function AgentComposer({
     });
 
     const hasSelectedSkills = draft.skills.some((skill) => skill.selected && skill.title.trim());
-    setActiveSection(draft.experience ? 'experiences' : draft.project ? 'projects' : hasSelectedSkills ? 'skills' : 'basics');
+    setActiveSection(draft.education ? 'education' : draft.experience ? 'experiences' : draft.project ? 'projects' : hasSelectedSkills ? 'skills' : 'basics');
     setInput('');
     setDraft(null);
   }
@@ -326,6 +352,39 @@ function AgentComposer({
       {draft ? (
         <div className={styles.confirmCard}>
           <strong>识别到的信息</strong>
+          {draft.basics ? (
+            <div className={styles.confirmGroup}>
+              <span>姓名</span>
+              <input
+                className={styles.confirmInput}
+                onChange={(event) => setDraft({ ...draft, basics: { ...draft.basics!, name: event.target.value } })}
+                value={draft.basics.name}
+              />
+            </div>
+          ) : null}
+          {draft.education ? (
+            <div className={styles.confirmGroup}>
+              <span>教育经历</span>
+              <input
+                className={styles.confirmInput}
+                onChange={(event) => setDraft({ ...draft, education: { ...draft.education!, school: event.target.value } })}
+                placeholder="学校"
+                value={draft.education.school}
+              />
+              <input
+                className={styles.confirmInput}
+                onChange={(event) => setDraft({ ...draft, education: { ...draft.education!, degree: event.target.value } })}
+                placeholder="学历"
+                value={draft.education.degree}
+              />
+              <input
+                className={styles.confirmInput}
+                onChange={(event) => setDraft({ ...draft, education: { ...draft.education!, endDate: event.target.value } })}
+                placeholder="毕业年份"
+                value={draft.education.endDate}
+              />
+            </div>
+          ) : null}
           {draft.targetRole ? (
             <div className={styles.confirmGroup}>
               <span>目标岗位</span>
@@ -762,6 +821,8 @@ function updateEntry(
 
 function createAgentDraft(input: string): AgentDraft {
   const normalized = input.trim();
+  const basics = extractBasics(normalized);
+  const education = extractEducation(normalized);
   const targetRole = extractTargetRole(normalized);
   const skills = extractSkills(normalized).map((skill, index) => ({
     id: `draft-skill-${index}`,
@@ -772,9 +833,22 @@ function createAgentDraft(input: string): AgentDraft {
   const experience = extractExperience(normalized);
   const project = extractProject(normalized);
 
-  return { targetRole, skills, experience, project };
+  return { basics, education, targetRole, skills, experience, project };
 }
 
+function extractBasics(input: string): AgentDraft['basics'] {
+  const name = input.match(/(?:我叫|姓名是|名字是) *([一-龥·]{2,8})/)?.[1]?.trim();
+  return name ? { name } : undefined;
+}
+
+function extractEducation(input: string): AgentDraft['education'] {
+  const school = input.match(/(?:就读于|毕业于|来自|学校是) *([^，。；;]{2,30})(?:的|，|。|；|;|本科|硕士|研究生|大专|学院|大学)/)?.[1]?.trim();
+  const degree =
+    input.match(/(博士研究生|硕士研究生|研究生|本科生|本科|大专|专科|博士|硕士)/)?.[1] || '';
+  const endDate = input.match(/(20[0-9]{2})年(?:毕业|毕)/)?.[1] || '';
+  if (!school && !degree && !endDate) return undefined;
+  return { school: school || '', degree, endDate };
+}
 function extractTargetRole(input: string) {
   const roleMatch = input.match(/(?:投|应聘|目标|求职|想做|想投)\s*([^，。；;\n]{2,18})/);
   if (roleMatch?.[1]) return cleanupRole(roleMatch[1]);
