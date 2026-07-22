@@ -1,0 +1,24 @@
+.DS_Store
+Thumbs.db
+desktop.ini
+
+*.log
+next-dev*.log
+.env*.local
+
+node_modules/
+.next/
+
+.vscode/
+.idea/
+.codex/
+
+# Local runtime and build artifacts
+tsconfig.tsbuildinfo
+ai-config/logs/*.jsonl
+~$*.docx
+
+# Private planning and design files in the project root
+/*.md
+designer-test-output.docx
+homepage-ui-mockup.svg

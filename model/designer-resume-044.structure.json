@@ -1,0 +1,278 @@
+{
+  "id": "designer-resume-044",
+  "name": "设计师简历044",
+  "sourceFile": "model/设计师简历044.docx",
+  "templateType": "docx",
+  "bestFor": [
+    "设计类岗位",
+    "室内设计",
+    "视觉设计",
+    "产品设计",
+    "内容创意",
+    "有项目作品集的学生"
+  ],
+  "sections": [
+    {
+      "id": "profile",
+      "label": "自我介绍",
+      "sourceHeading": "自我介绍 / PROFILE",
+      "purpose": "用一段话概括求职方向、核心能力、代表经历和职业优势。",
+      "fields": [
+        {
+          "id": "profile.summary",
+          "label": "自我介绍",
+          "type": "textarea",
+          "required": true,
+          "placeholder": "例如：专注校园新媒体运营与用户增长，具备内容策划、数据复盘和活动执行经验..."
+        }
+      ]
+    },
+    {
+      "id": "identity",
+      "label": "个人信息",
+      "sourceHeading": "页面头部信息",
+      "purpose": "展示姓名、目标岗位和联系方式。",
+      "fields": [
+        {
+          "id": "identity.name",
+          "label": "姓名",
+          "type": "text",
+          "required": true,
+          "example": "赵思琪"
+        },
+        {
+          "id": "identity.targetTitle",
+          "label": "求职岗位",
+          "type": "text",
+          "required": true,
+          "example": "资深室内设计师"
+        },
+        {
+          "id": "identity.phone",
+          "label": "手机号",
+          "type": "text",
+          "required": false,
+          "example": "138-0000-0000"
+        },
+        {
+          "id": "identity.email",
+          "label": "邮箱",
+          "type": "email",
+          "required": false,
+          "example": "luxingchen@email.com"
+        },
+        {
+          "id": "identity.location",
+          "label": "所在城市",
+          "type": "text",
+          "required": false,
+          "example": "广州市南沙区"
+        }
+      ]
+    },
+    {
+      "id": "skills",
+      "label": "职业技能",
+      "sourceHeading": "职业技能 / SKILL",
+      "purpose": "用短词列表呈现工具、技能、证书或语言能力。",
+      "fields": [
+        {
+          "id": "skills.items",
+          "label": "技能列表",
+          "type": "list",
+          "required": false,
+          "itemType": "text",
+          "example": [
+            "AutoCAD",
+            "SketchUp",
+            "3D Studio Max",
+            "Adobe Photoshop",
+            "Blender",
+            "Live Home 3D"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "awards",
+      "label": "获奖经历",
+      "sourceHeading": "获奖经历 / AWARD",
+      "purpose": "展示奖项、证书、竞赛结果。学生没有获奖时可隐藏或替换为证书/校园荣誉。",
+      "fields": [
+        {
+          "id": "awards.items",
+          "label": "获奖经历",
+          "type": "list",
+          "required": false,
+          "itemSchema": {
+            "name": "奖项名称",
+            "result": "奖项结果",
+            "year": "年份"
+          },
+          "example": [
+            {
+              "name": "亚太室内设计奖",
+              "result": "银奖",
+              "year": "2024"
+            },
+            {
+              "name": "中国室内设计年鉴",
+              "result": "入围奖",
+              "year": "2023"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "experience",
+      "label": "经历",
+      "sourceHeading": "工作履历 / WORK EXPERIENCE",
+      "purpose": "承载实习经历、项目经历、校园经历或正式工作经历。对学生简历来说，这一栏不必局限于工作履历。",
+      "studentAliases": [
+        "实习经历",
+        "项目经历",
+        "校园经历",
+        "比赛经历"
+      ],
+      "fields": [
+        {
+          "id": "experience.items",
+          "label": "经历列表",
+          "type": "list",
+          "required": true,
+          "itemSchema": {
+            "role": "角色/岗位",
+            "organization": "公司/组织/项目名称",
+            "period": "时间",
+            "bullets": "经历要点列表"
+          },
+          "example": [
+            {
+              "role": "资深室内设计师",
+              "organization": "广州 DESIGN ONE 创意",
+              "period": "2021.7 - 2025.12",
+              "bullets": [
+                "主导 30+ 住宅全案设计，为别墅业主打造现代侘寂风私宅，带动 10 组客户咨询。",
+                "负责餐饮空间设计，为工业风咖啡馆设计动线与视觉，开业后成为本地打卡地。",
+                "统筹商业办公空间改造，优化工位布局与休闲区氛围，员工满意度提升 40%。"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "education",
+      "label": "教育背景",
+      "sourceHeading": "教育背景 / EDUCATION",
+      "purpose": "展示学校、专业、学历和时间。",
+      "fields": [
+        {
+          "id": "education.school",
+          "label": "学校",
+          "type": "text",
+          "required": true,
+          "example": "东华大学"
+        },
+        {
+          "id": "education.major",
+          "label": "专业/学历",
+          "type": "text",
+          "required": true,
+          "example": "服装与服饰设计学士"
+        },
+        {
+          "id": "education.period",
+          "label": "在校时间",
+          "type": "text",
+          "required": false,
+          "example": "2012 - 2016"
+        }
+      ]
+    }
+  ],
+  "webInputOrder": [
+    "identity.name",
+    "identity.targetTitle",
+    "identity.phone",
+    "identity.email",
+    "identity.location",
+    "profile.summary",
+    "education.school",
+    "education.major",
+    "education.period",
+    "experience.items",
+    "skills.items",
+    "awards.items"
+  ],
+  "sampleData": {
+    "identity": {
+      "name": "赵思琪",
+      "targetTitle": "资深室内设计师",
+      "phone": "138-0000-0000",
+      "email": "luxingchen@email.com",
+      "location": "广州市南沙区"
+    },
+    "profile": {
+      "summary": "专注住宅、商业空间全案设计，从户型优化、风格塑造到软装落地，打造 50+ 功能与美学平衡的空间，让设计真正服务生活与商业价值。擅长现代简约、新中式、侘寂风等，精准匹配客户生活与品牌需求。熟悉材料特性、施工工艺，保障设计效果落地。"
+    },
+    "skills": {
+      "items": [
+        "AutoCAD",
+        "SketchUp",
+        "3D Studio Max",
+        "Adobe Photoshop",
+        "Blender",
+        "Live Home 3D"
+      ]
+    },
+    "awards": {
+      "items": [
+        {
+          "name": "亚太室内设计奖",
+          "result": "银奖",
+          "year": "2024"
+        },
+        {
+          "name": "中国室内设计年鉴",
+          "result": "入围奖",
+          "year": "2023"
+        }
+      ]
+    },
+    "experience": {
+      "items": [
+        {
+          "role": "资深室内设计师",
+          "organization": "广州 DESIGN ONE 创意",
+          "period": "2021.7 - 2025.12",
+          "bullets": [
+            "主导 30+ 住宅全案设计，为别墅业主打造现代侘寂风私宅，带动 10 组客户咨询。",
+            "负责餐饮空间设计，为工业风咖啡馆设计动线与视觉，开业后成为本地打卡地。",
+            "统筹商业办公空间改造，优化工位布局与休闲区氛围，员工满意度提升 40%。"
+          ]
+        },
+        {
+          "role": "室内设计师",
+          "organization": "广州 DESIGN TWO 创意",
+          "period": "2018.3 - 2021.6",
+          "bullets": [
+            "带领团队完成 15+ 高端住宅样板间设计，助力楼盘去化率提升 35%。",
+            "参与商业综合体公共空间设计，通过灯光与装置艺术吸引客流。"
+          ]
+        }
+      ]
+    },
+    "education": {
+      "school": "东华大学",
+      "major": "服装与服饰设计学士",
+      "period": "2012 - 2016"
+    }
+  },
+  "fillNotes": [
+    "DOCX 内部存在重复文本节点，后续自动替换时需要按段落/文本框定位，不能只做简单字符串全局替换。",
+    "JPG/PNG 更适合作为模板预览图；真正在线填充建议使用这个 JSON 结构转换成 React 简历模板。",
+    "学生没有获奖经历时，awards 区块可以隐藏，或替换为证书、校园荣誉、比赛经历。"
+  ]
+}

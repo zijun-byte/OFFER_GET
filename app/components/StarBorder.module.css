@@ -1,0 +1,77 @@
+.container {
+  --star-border-color: #ffffff;
+  --star-border-speed: 6s;
+  --star-border-thickness: 2px;
+  display: inline-block;
+  position: relative;
+  width: 100%;
+  padding: var(--star-border-thickness) 0;
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.gradientBottom,
+.gradientTop {
+  position: absolute;
+  z-index: 0;
+  width: 300%;
+  height: 50%;
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--star-border-color), transparent 10%);
+  opacity: 0;
+  transition: opacity 180ms ease;
+  animation-duration: var(--star-border-speed);
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+  animation-direction: alternate;
+}
+
+.gradientBottom {
+  right: -250%;
+  bottom: -12px;
+  animation-name: starMovementBottom;
+}
+
+.gradientTop {
+  top: -12px;
+  left: -250%;
+  animation-name: starMovementTop;
+}
+
+.container:hover .gradientBottom,
+.container:hover .gradientTop,
+.container:focus-within .gradientBottom,
+.container:focus-within .gradientTop,
+a:hover .container .gradientBottom,
+a:hover .container .gradientTop,
+a:focus-visible .container .gradientBottom,
+a:focus-visible .container .gradientTop {
+  opacity: 0.88;
+}
+
+.innerContent {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+}
+
+@keyframes starMovementBottom {
+  0% {
+    transform: translate(0%, 0%);
+  }
+
+  100% {
+    transform: translate(-100%, 0%);
+  }
+}
+
+@keyframes starMovementTop {
+  0% {
+    transform: translate(0%, 0%);
+  }
+
+  100% {
+    transform: translate(100%, 0%);
+  }
+}

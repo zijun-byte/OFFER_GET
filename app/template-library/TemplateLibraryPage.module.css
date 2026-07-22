@@ -1,0 +1,220 @@
+.libraryStage {
+  padding: 48px 0 90px;
+}
+
+.heroCopy {
+  max-width: 780px;
+  margin-bottom: 38px;
+}
+
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  height: 34px;
+  padding: 0 14px;
+  border-radius: 999px;
+  background: var(--green-soft);
+  color: var(--green-dark);
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.heroCopy h1 {
+  max-width: 860px;
+  margin: 20px 0 16px;
+  font-size: clamp(40px, 5vw, 66px);
+  line-height: 1.08;
+}
+
+.lead {
+  margin: 0;
+  color: var(--muted);
+  font-size: 19px;
+  line-height: 1.8;
+}
+
+.templateGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 24px;
+  padding-bottom: 24px;
+}
+
+.templateCard {
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  min-height: 520px;
+  padding: 22px;
+  border: 1px solid rgba(52, 191, 111, 0.34);
+  border-radius: 8px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(252, 255, 253, 0.92)), var(--white);
+  box-shadow:
+    0 24px 70px rgba(22, 128, 78, 0.11),
+    0 0 0 8px rgba(218, 252, 231, 0.38),
+    0 0 42px rgba(54, 224, 128, 0.18);
+  backdrop-filter: blur(18px);
+  transition: transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
+}
+
+.templateCard:hover {
+  transform: translateY(-5px);
+  border-color: rgba(24, 163, 95, 0.76);
+  box-shadow:
+    0 32px 88px rgba(22, 128, 78, 0.17),
+    0 0 0 10px rgba(207, 250, 224, 0.62),
+    0 0 58px rgba(44, 225, 126, 0.28);
+}
+
+.templateMeta {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 18px;
+}
+
+.templateTitle {
+  margin: 0 0 7px;
+  font-size: 21px;
+  font-weight: 900;
+}
+
+.templateDesc {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+.tag {
+  display: inline-flex;
+  align-items: center;
+  min-height: 30px;
+  padding: 0 10px;
+  border-radius: 999px;
+  background: var(--green-soft);
+  color: var(--green-dark);
+  font-size: 12px;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+.resumePreview {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 0.72;
+  border: 1px solid #e5eee8;
+  border-radius: 8px;
+  background: #fbfdfb;
+  object-fit: cover;
+  box-shadow: 0 18px 40px rgba(25, 68, 44, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.95);
+}
+
+.cardActions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 18px;
+}
+
+.actionButtons {
+  display: flex;
+  gap: 10px;
+}
+
+.smallNote {
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.modal {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 28px;
+  background: rgba(16, 45, 31, 0.42);
+  backdrop-filter: blur(10px);
+}
+
+.modalPanel {
+  width: min(920px, 100%);
+  max-height: calc(100vh - 56px);
+  overflow: auto;
+  padding: 24px;
+  border: 1px solid rgba(52, 191, 111, 0.34);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.98);
+  box-shadow: 0 36px 90px rgba(18, 60, 38, 0.18), 0 0 0 10px rgba(218, 252, 231, 0.32);
+}
+
+.modalHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  margin-bottom: 18px;
+}
+
+.modalTitle {
+  margin: 0;
+  font-size: 28px;
+  font-weight: 900;
+}
+
+.modalCopy {
+  margin: 6px 0 0;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+.closeButton {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  background: #ffffff;
+  color: var(--ink);
+  font-size: 24px;
+  cursor: pointer;
+}
+
+.modalImage {
+  display: block;
+  width: 100%;
+  height: auto;
+  border: 1px solid #e5eee8;
+  border-radius: 8px;
+  background: #fbfdfb;
+  box-shadow: 0 18px 40px rgba(25, 68, 44, 0.1);
+}
+
+@media (max-width: 980px) {
+  .templateGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .templateGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .templateCard {
+    min-height: auto;
+  }
+
+  .actionButtons {
+    width: 100%;
+  }
+}

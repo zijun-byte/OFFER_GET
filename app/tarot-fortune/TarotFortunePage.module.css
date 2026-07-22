@@ -1,0 +1,268 @@
+.fortuneStage {
+  display: grid;
+  min-height: calc(100vh - 104px);
+  place-items: center;
+  padding: 28px 0 92px;
+}
+
+.hiddenSvg {
+  position: absolute;
+  left: -9999px;
+  overflow: hidden;
+}
+
+.cardField {
+  position: relative;
+  width: min(900px, 100%);
+  height: min(66vw, 590px);
+  min-height: 440px;
+  perspective: 1200px;
+}
+
+.aura {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: min(520px, 84%);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(214, 180, 91, 0.18) 0 18%, rgba(24, 163, 95, 0.1) 36%, transparent 68%);
+  filter: blur(10px);
+  transform: translate(-50%, -50%);
+}
+
+.fortuneCard {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 210px;
+  aspect-ratio: 3 / 4.35;
+  border: 1px solid rgba(214, 180, 91, 0.45);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--white);
+  box-shadow: 0 28px 70px rgba(12, 28, 18, 0.22);
+  cursor: pointer;
+  transform-style: preserve-3d;
+  transition: filter 220ms ease, box-shadow 220ms ease, transform 680ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  animation: floatCard 4.8s ease-in-out infinite;
+}
+
+.fortuneCard:hover {
+  filter: brightness(1.08);
+}
+
+.fortuneCard:nth-of-type(1) {
+  z-index: 2;
+  --x: -248px;
+  --y: 16px;
+  --r: -12deg;
+  --s: 0.9;
+  animation-delay: -1.2s;
+}
+
+.fortuneCard:nth-of-type(2) {
+  z-index: 4;
+  --x: -94px;
+  --y: -42px;
+  --r: 4deg;
+  --s: 1.06;
+  animation-delay: -0.3s;
+}
+
+.fortuneCard:nth-of-type(3) {
+  z-index: 3;
+  --x: 88px;
+  --y: 32px;
+  --r: 13deg;
+  --s: 0.95;
+  animation-delay: -2s;
+}
+
+.isPaused {
+  animation-play-state: paused;
+}
+
+.isSpread .fortuneCard {
+  z-index: 3;
+  animation: none;
+}
+
+.isSpread .fortuneCard:nth-of-type(1) {
+  transform: translate3d(-340px, -26px, 0) rotate(-7deg) scale(0.98);
+}
+
+.isSpread .fortuneCard:nth-of-type(2) {
+  transform: translate3d(-105px, -52px, 0) rotate(0deg) scale(1.06);
+}
+
+.isSpread .fortuneCard:nth-of-type(3) {
+  transform: translate3d(130px, -26px, 0) rotate(7deg) scale(0.98);
+}
+
+.flipShell {
+  position: absolute;
+  inset: 0;
+  transform-style: preserve-3d;
+  transition: transform 760ms cubic-bezier(0.2, 0.78, 0.2, 1);
+}
+
+.isFlipped .flipShell {
+  transform: rotateY(180deg);
+}
+
+.cardFace {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  border-radius: 8px;
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.12), transparent 24%),
+    radial-gradient(circle at 50% 33%, rgba(214, 180, 91, 0.17), transparent 34%),
+    #090a0b;
+  backface-visibility: hidden;
+}
+
+.cardBack {
+  display: grid;
+  align-content: center;
+  gap: 12px;
+  padding: 30px 24px;
+  color: #f7f2e2;
+  text-align: left;
+  transform: rotateY(180deg);
+}
+
+.cardBack::before,
+.cardInner {
+  position: absolute;
+  inset: 14px;
+  border: 1px solid rgba(214, 180, 91, 0.42);
+  border-radius: 6px;
+}
+
+.cardBack::before {
+  content: "";
+  pointer-events: none;
+}
+
+.cardInner {
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  justify-items: center;
+  padding: 18px 14px;
+  overflow: hidden;
+}
+
+.cardNumber {
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+}
+
+.cardMark {
+  align-self: center;
+  width: 112px;
+  aspect-ratio: 1;
+  filter: saturate(0.88) contrast(1.1) drop-shadow(0 0 22px rgba(214, 180, 91, 0.42));
+  mix-blend-mode: screen;
+}
+
+.cardLabel {
+  color: rgba(255, 255, 255, 0.82);
+  font-size: 13px;
+  font-weight: 900;
+  letter-spacing: 0.14em;
+}
+
+.resultKicker {
+  position: relative;
+  z-index: 1;
+  color: rgba(214, 180, 91, 0.86);
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 0.16em;
+}
+
+.resultTitle {
+  position: relative;
+  z-index: 1;
+  margin: 0;
+  font-size: 24px;
+  line-height: 1.22;
+  font-weight: 900;
+}
+
+.resultText {
+  position: relative;
+  z-index: 1;
+  margin: 0;
+  color: rgba(247, 242, 226, 0.74);
+  font-size: 13px;
+  line-height: 1.75;
+}
+
+.cardStatus {
+  position: absolute;
+  left: 50%;
+  bottom: -34px;
+  min-width: 116px;
+  padding: 7px 12px;
+  border: 1px solid rgba(223, 236, 228, 0.78);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.84);
+  color: #486052;
+  font-size: 12px;
+  font-weight: 800;
+  text-align: center;
+  opacity: 0;
+  transform: translateX(-50%);
+  backdrop-filter: blur(14px);
+}
+
+.isPaused .cardStatus {
+  opacity: 1;
+}
+
+.isSpread .cardStatus {
+  opacity: 0;
+}
+
+.fortuneNote {
+  position: absolute;
+  left: 50%;
+  bottom: 18px;
+  width: min(320px, 100%);
+  padding: 18px 20px;
+  border: 1px solid rgba(223, 236, 228, 0.8);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.72);
+  color: #516559;
+  font-size: 13px;
+  line-height: 1.7;
+  transform: translateX(-50%);
+  backdrop-filter: blur(18px);
+  box-shadow: 0 18px 44px rgba(14, 59, 40, 0.08);
+}
+
+@keyframes floatCard {
+  0%,
+  100% {
+    transform: translate3d(var(--x), var(--y), 0) rotate(var(--r)) scale(var(--s));
+  }
+  50% {
+    transform: translate3d(var(--x), calc(var(--y) - 18px), 44px) rotate(calc(var(--r) + 2deg)) scale(var(--s));
+  }
+}
+
+@media (max-width: 640px) {
+  .cardField {
+    min-height: 490px;
+    height: 500px;
+  }
+
+  .fortuneCard {
+    width: 164px;
+  }
+}
