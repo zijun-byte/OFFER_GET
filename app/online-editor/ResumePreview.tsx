@@ -119,8 +119,6 @@ export default function ResumePreview({
         className={`${styles.resumePaper} ${templateClasses[selectedTemplate] || ''}`}
       >
         <aside className={styles.resumeSidebar}>
-          <h3 className={styles.sidebarTitle}>模板侧栏</h3>
-          <p className={styles.sidebarCopy}>双栏模板从同一份结构化数据中抽取教育、技能和联系方式。</p>
           {resumeData.education.length > 0 && (
             <div className={styles.sidebarGroup}>
               <strong>教育</strong>
@@ -139,11 +137,14 @@ export default function ResumePreview({
               ))}
             </div>
           )}
-          <div className={styles.sidebarGroup}>
-            <strong>联系</strong>
-            <span>{basics.phone}</span>
-            <span>{basics.email}</span>
-          </div>
+          {[basics.city, basics.phone, basics.email, basics.portfolio].some(Boolean) && (
+            <div className={styles.sidebarGroup}>
+              <strong>联系</strong>
+              {[basics.city, basics.phone, basics.email, basics.portfolio].filter(Boolean).map((item) => (
+                <span key={item}>{item}</span>
+              ))}
+            </div>
+          )}
         </aside>
 
         <div className={styles.resumeMain}>
