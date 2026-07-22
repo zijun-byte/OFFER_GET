@@ -1,6 +1,13 @@
 import { promises as fs } from 'fs';
 import path from 'path';
 
+import photoEnhancerConfig from '../../ai-config/agents/photo-enhancer.json';
+import resumeAnalystConfig from '../../ai-config/agents/resume-analyst.json';
+import resumeExtractorConfig from '../../ai-config/agents/resume-extractor.json';
+import resumeGuardConfig from '../../ai-config/agents/resume-guard.json';
+import resumeIntakeConfig from '../../ai-config/agents/resume-intake.json';
+import resumePolisherConfig from '../../ai-config/agents/resume-polisher.json';
+import workflowCompilerConfig from '../../ai-config/agents/workflow-compiler.json';
 export type AgentKind = 'text-json' | 'image-generation';
 export type AgentBinding = 'unbound' | 'photo-enhance';
 
@@ -31,21 +38,41 @@ const CANONICAL_AGENT_NAMES: Record<string, string> = {
   'resume-polisher': '简历润色智能体',
   'workflow-compiler': '自然语言编队编译器',
 };
+const BUNDLED_AGENT_CONFIGS: Record<string, unknown> = {
+  'photo-enhancer': photoEnhancerConfig,
+  'resume-analyst': resumeAnalystConfig,
+  'resume-extractor': resumeExtractorConfig,
+  'resume-guard': resumeGuardConfig,
+  'resume-intake': resumeIntakeConfig,
+  'resume-polisher': resumePolisherConfig,
+  'workflow-compiler': workflowCompilerConfig,
+};
 
 export async function readAgentConfig(agentId: string): Promise<AgentConfig> {
   const filePath = getAgentConfigPath(agentId);
-  const content = await fs.readFile(filePath, 'utf8');
-  return normalizeAgentConfig(JSON.parse(content) as Partial<AgentConfig>, agentId);
-}
 
+  try {
+    const content = await fs.readFile(filePath, 'utf8');
+    return normalizeAgentConfig(JSON.parse(content) as Partial<AgentConfig>, agentId);
+  } catch (error) {
+    const bundledConfig = BUNDLED_AGENT_CONFIGS[agentId];
+    if (bundledConfig) return normalizeAgentConfig(bundledConfig as Partial<AgentConfig>, agentId);
+    throw error;
+  }
+}
 export async function listAgentConfigs(): Promise<AgentConfig[]> {
-  const files = await fs.readdir(AGENT_CONFIG_DIR);
-  const configs = await Promise.all(
-    files.filter((file) => file.endsWith('.json')).map((file) => readAgentConfig(file.replace(/\.json$/, ''))),
-  );
-  return configs.sort((left, right) => left.name.localeCompare(right.name, 'zh-CN'));
+  try {
+    const files = await fs.readdir(AGENT_CONFIG_DIR);
+    const configs = await Promise.all(
+      files.filter((file) => file.endsWith('.json')).map((file) => readAgentConfig(file.slice(0, -5))),
+    );
+    return configs.sort((left, right) => left.name.localeCompare(right.name, 'zh-CN'));
+  } catch {
+    return Object.keys(BUNDLED_AGENT_CONFIGS)
+      .map((agentId) => normalizeAgentConfig(BUNDLED_AGENT_CONFIGS[agentId] as Partial<AgentConfig>, agentId))
+      .sort((left, right) => left.name.localeCompare(right.name, 'zh-CN'));
+  }
 }
-
 export async function readAgentByBinding(binding: AgentBinding): Promise<AgentConfig | null> {
   const agents = await listAgentConfigs();
   return agents.find((agent) => agent.binding === binding) || null;
