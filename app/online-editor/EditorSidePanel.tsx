@@ -6,6 +6,7 @@ import type {
   ResumeData,
   ResumeEditorSection,
   ResumeExperience,
+  ResumeExtractionDraft,
   ResumeSkill,
   ResumeVisibleSections,
 } from './resumePreviewData';
@@ -270,24 +271,44 @@ function AgentComposer({
   const [draft, setDraft] = React.useState<AgentDraft | null>(null);
   const [analysisStatus, setAnalysisStatus] = React.useState('');
 
-  function analyzeInput() {
-    if (!input.trim()) {
+  async function analyzeInput() {
+    const sourceText = input.trim();
+    if (!sourceText) {
       setDraft(null);
-      setAnalysisStatus('请先输入想识别的岗位、经历、项目或技能信息。');
+      setAnalysisStatus('\u8bf7\u5148\u8f93\u5165\u60f3\u8bc6\u522b\u7684\u5c97\u4f4d\u3001\u7ecf\u5386\u3001\u9879\u76ee\u6216\u6280\u80fd\u4fe1\u606f\u3002');
       return;
     }
 
-    const nextDraft = createAgentDraft(input);
-    if (!nextDraft.basics && !nextDraft.education && !nextDraft.targetRole && nextDraft.skills.length === 0 && !nextDraft.experience && !nextDraft.project) {
+    setAnalysisStatus('AI \u6b63\u5728\u8bc6\u522b\u4fe1\u606f...');
+    try {
+      const response = await fetch('/api/resume/extract', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: sourceText }),
+      });
+      if (!response.ok) throw new Error('Failed to extract agent draft.');
+
+      const extraction = (await response.json()) as ResumeExtractionDraft;
+      const nextDraft = createAgentDraftFromExtraction(extraction);
+      if (hasAgentDraftContent(nextDraft)) {
+        setDraft(nextDraft);
+        setAnalysisStatus('\u5df2\u901a\u8fc7 AI \u8bc6\u522b\u4fe1\u606f\uff0c\u8bf7\u786e\u8ba4\u540e\u518d\u5199\u5165\u7b80\u5386\u3002');
+        return;
+      }
+    } catch {
+      // The local parser below keeps the editor usable when the AI service is unavailable.
+    }
+
+    const fallbackDraft = createAgentDraft(sourceText);
+    if (!hasAgentDraftContent(fallbackDraft)) {
       setDraft(null);
-      setAnalysisStatus('暂未识别到可写入字段。可以补充岗位、项目、实习、工具或技能关键词后再试。');
+      setAnalysisStatus('\u6682\u672a\u8bc6\u522b\u5230\u53ef\u5199\u5165\u5b57\u6bb5\u3002\u53ef\u4ee5\u8865\u5145\u5c97\u4f4d\u3001\u9879\u76ee\u3001\u5b9e\u4e60\u3001\u5de5\u5177\u6216\u6280\u80fd\u5173\u952e\u8bcd\u540e\u518d\u8bd5\u3002');
       return;
     }
 
-    setDraft(nextDraft);
-    setAnalysisStatus('已识别信息，请确认后再写入简历。');
+    setDraft(fallbackDraft);
+    setAnalysisStatus('\u667a\u80fd\u4f53\u6682\u65f6\u4e0d\u53ef\u7528\uff0c\u5df2\u4f7f\u7528\u672c\u5730\u89c4\u5219\u8bc6\u522b\uff1b\u8bf7\u786e\u8ba4\u540e\u518d\u5199\u5165\u7b80\u5386\u3002');
   }
-
   function confirmDraft() {
     if (!draft) return;
 
@@ -819,6 +840,53 @@ function updateEntry(
   }));
 }
 
+function createAgentDraftFromExtraction(extraction: ResumeExtractionDraft): AgentDraft {
+  const basics = extraction.basics || {};
+  const education = extraction.education?.[0];
+  const experience = extraction.experiences?.[0];
+  const project = extraction.projects?.[0];
+  const sourceText = extraction.sourceText || '';
+
+  return {
+    basics: basics.name ? { name: basics.name } : undefined,
+    education: education
+      ? { school: education.school || '', degree: education.degree || '', endDate: education.endDate || '' }
+      : undefined,
+    targetRole: basics.targetRole || undefined,
+    skills: (extraction.skills || []).map((skill, index) => ({
+      id: 'draft-skill-' + index,
+      selected: true,
+      sourceText: skill.sourceText || sourceText,
+      title: skill.title || '',
+    })).filter((skill) => skill.title),
+    experience: experience
+      ? {
+          organization: experience.organization || '',
+          role: experience.role || '',
+          description: experience.description || '',
+          bullets: experience.bullets?.length ? experience.bullets : [experience.sourceText || sourceText].filter(Boolean),
+        }
+      : undefined,
+    project: project
+      ? {
+          organization: project.organization || '',
+          role: project.role || '',
+          description: project.description || '',
+          bullets: project.bullets?.length ? project.bullets : [project.sourceText || sourceText].filter(Boolean),
+        }
+      : undefined,
+  };
+}
+function hasAgentDraftContent(draft: AgentDraft) {
+  return Boolean(
+    draft.basics
+    || draft.education
+    || draft.targetRole
+    || draft.skills.length > 0
+    || draft.experience
+    || draft.project,
+  );
+}
 function createAgentDraft(input: string): AgentDraft {
   const normalized = input.trim();
   const basics = extractBasics(normalized);

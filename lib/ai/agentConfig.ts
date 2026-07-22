@@ -48,6 +48,19 @@ const BUNDLED_AGENT_CONFIGS: Record<string, unknown> = {
   'workflow-compiler': workflowCompilerConfig,
 };
 
+const RESUME_EXTRACTOR_ENTITY_RULES = [
+  '',
+  '[ENTITY_EXTRACTION_RULES]',
+  '\u5f53\u7528\u6237\u8bf4\u201c\u5728 X \u5de5\u4f5c\u3001\u5728 X \u5f53\u8fc7\u3001\u5728 X \u6559\u5b66\u3001\u5728 X \u4efb\u804c\u3001\u4e3a X \u670d\u52a1\u201d\u65f6\uff0c\u5fc5\u987b\u7528\u8bed\u4e49\u8bc6\u522b X \u662f\u96c7\u4e3b\u3001\u673a\u6784\u3001\u5e97\u94fa\u6216\u9879\u76ee\u4e3b\u4f53\uff0c\u5e76\u5199\u5165 organization\u3002',
+  '\u4e0d\u5f97\u4ec5\u4f9d\u8d56\u201c\u516c\u53f8\u3001\u96c6\u56e2\u3001\u673a\u6784\u201d\u8fd9\u7c7b\u540e\u7f00\u3002\u540d\u79f0\u53ef\u4ee5\u662f\u7ebf\u4e0b\u5e97\u94fa\u3001\u827a\u672f\u673a\u6784\u3001\u97f3\u54cd\u5e97\u3001\u4f53\u80b2\u5f69\u7968\u5e97\u7b49\u3002',
+  '\u4f8b\u5982\uff1a\u201c\u6211\u5728\u6167\u535a\u827a\u672f\u7434\u884c\u5f53\u8fc7\u5409\u4ed6\u8001\u5e08\u201d\u5fc5\u987b\u63d0\u53d6 organization=\u201c\u6167\u535a\u827a\u672f\u7434\u884c\u201d\u3001role=\u201c\u5409\u4ed6\u8001\u5e08\u201d\uff1b\u201c\u6211\u5728 X \u97f3\u54cd\u505a\u9500\u552e\u201d\u5fc5\u987b\u63d0\u53d6 organization=\u201cX \u97f3\u54cd\u201d\u3002',
+  '\u82e5\u53ea\u6709\u5730\u540d\u6216\u54c1\u724c\u540d\u3001\u4e14\u6ca1\u6709\u660e\u786e\u4efb\u804c\u5173\u7cfb\uff0c\u4e0d\u5f97\u81ea\u884c\u731c\u6d4b\u4e3a\u673a\u6784\u3002',
+].join('\n');
+
+function withRequiredAgentRules(prompt: string, agentId: string) {
+  if (agentId !== 'resume-extractor' || prompt.includes('[ENTITY_EXTRACTION_RULES]')) return prompt;
+  return prompt + RESUME_EXTRACTOR_ENTITY_RULES;
+}
 export async function readAgentConfig(agentId: string): Promise<AgentConfig> {
   const filePath = getAgentConfigPath(agentId);
 
@@ -106,7 +119,7 @@ function normalizeAgentConfig(config: Partial<AgentConfig>, fallbackId: string):
     promptVersion: config.promptVersion || 'v1',
     temperature: typeof config.temperature === 'number' ? config.temperature : 0,
     enabled: config.enabled !== false,
-    prompt: config.prompt || '',
+    prompt: withRequiredAgentRules(config.prompt || '', config.id || fallbackId),
     kind: config.kind === 'image-generation' ? 'image-generation' : 'text-json',
     binding: config.binding === 'photo-enhance' ? 'photo-enhance' : 'unbound',
   };
