@@ -22,3 +22,4 @@ ai-config/logs/*.jsonl
 /*.md
 designer-test-output.docx
 homepage-ui-mockup.svg
+.open-next/
