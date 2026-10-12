@@ -8,6 +8,7 @@ export type ResumeSuggestion = {
   before: string;
   after: string;
   reason: string;
+  entryId?: string;
 };
 
 export function createResumeSuggestions(before: ResumeData, after: ResumeData): ResumeSuggestion[] {
@@ -18,7 +19,7 @@ export function createResumeSuggestions(before: ResumeData, after: ResumeData): 
   before.education.forEach((item, index) => {
     const next = after.education[index];
     if (!next) return;
-    compareValue(suggestions, `education.${index}.highlights`, '教育经历', `教育经历 ${index + 1} · 亮点`, item.highlights, next.highlights);
+    compareValue(suggestions, `education.${index}.highlights`, '教育经历', `教育经历 ${index + 1} · 亮点`, item.highlights, next.highlights, item.id);
   });
 
   compareEntries(suggestions, 'experiences', '实习经历', before.experiences, after.experiences);
@@ -27,8 +28,8 @@ export function createResumeSuggestions(before: ResumeData, after: ResumeData): 
   before.skills.forEach((item, index) => {
     const next = after.skills[index];
     if (!next) return;
-    compareValue(suggestions, `skills.${index}.title`, '技能补充', `技能 ${index + 1}`, item.title, next.title);
-    compareValue(suggestions, `skills.${index}.details`, '技能补充', `技能 ${index + 1} · 说明`, item.details, next.details);
+    compareValue(suggestions, `skills.${index}.title`, '技能补充', `技能 ${index + 1}`, item.title, next.title, item.id);
+    compareValue(suggestions, `skills.${index}.details`, '技能补充', `技能 ${index + 1} · 说明`, item.details, next.details, item.id);
   });
 
   return suggestions;
@@ -44,8 +45,8 @@ function compareEntries(
   before.forEach((item, index) => {
     const next = after[index];
     if (!next) return;
-    compareValue(suggestions, `${key}.${index}.description`, section, `${section} ${index + 1} · 说明`, item.description || '', next.description || '');
-    compareValue(suggestions, `${key}.${index}.bullets`, section, `${section} ${index + 1} · 经历描述`, item.bullets, next.bullets);
+    compareValue(suggestions, `${key}.${index}.description`, section, `${section} ${index + 1} · 说明`, item.description || '', next.description || '', item.id);
+    compareValue(suggestions, `${key}.${index}.bullets`, section, `${section} ${index + 1} · 经历描述`, item.bullets, next.bullets, item.id);
   });
 }
 
@@ -56,6 +57,7 @@ function compareValue(
   label: string,
   beforeValue: string | string[],
   afterValue: string | string[],
+  entryId?: string,
 ) {
   const before = Array.isArray(beforeValue) ? beforeValue.join('\n') : beforeValue;
   const after = Array.isArray(afterValue) ? afterValue.join('\n') : afterValue;
@@ -69,6 +71,7 @@ function compareValue(
     before,
     after,
     reason: '优化表达清晰度、行动感和简历语气，不新增原文没有的事实。',
+    entryId,
   });
 }
 
@@ -81,21 +84,36 @@ export function applyResumeSuggestions(
 
   suggestions.forEach((suggestion) => {
     if (!selectedIds.has(suggestion.id)) return;
-    const parts = suggestion.path.split('.');
-    let target: unknown = next;
-
-    for (let index = 0; index < parts.length - 1; index += 1) {
-      const key = /^\d+$/.test(parts[index]) ? Number(parts[index]) : parts[index];
-      target = (target as Record<string | number, unknown>)[key];
-    }
-
-    const finalPart = parts[parts.length - 1];
-    const key = /^\d+$/.test(finalPart) ? Number(finalPart) : finalPart;
-    const current = (target as Record<string | number, unknown>)[key];
-    (target as Record<string | number, unknown>)[key] = Array.isArray(current)
+    const target = getSuggestionTarget(next, suggestion);
+    if (!target) return;
+    const current = target.record[target.field];
+    const text = Array.isArray(current) ? current.join('\n') : current || '';
+    if (text !== suggestion.before) return;
+    target.record[target.field] = Array.isArray(current)
       ? suggestion.after.split('\n').map((line) => line.trim()).filter(Boolean)
       : suggestion.after;
   });
 
   return next;
+}
+
+export function isResumeSuggestionCurrent(data: ResumeData, suggestion: ResumeSuggestion): boolean {
+  const target = getSuggestionTarget(data, suggestion);
+  if (!target) return false;
+  const value = target.record[target.field];
+  return (Array.isArray(value) ? value.join('\n') : value || '') === suggestion.before;
+}
+
+function getSuggestionTarget(data: ResumeData, suggestion: ResumeSuggestion) {
+  if (suggestion.path === 'basics.summary') {
+    return { record: data.basics as unknown as Record<string, unknown>, field: 'summary' };
+  }
+  const match = /^(education|experiences|projects|skills)\.(\d+)\.(highlights|description|bullets|title|details)$/.exec(suggestion.path);
+  if (!match) return null;
+  const section = match[1] as 'education' | 'experiences' | 'projects' | 'skills';
+  const field = match[3];
+  const allowedFields = { education: ['highlights'], experiences: ['description', 'bullets'], projects: ['description', 'bullets'], skills: ['title', 'details'] };
+  if (!allowedFields[section].includes(field) || !suggestion.entryId) return null;
+  const entry = data[section].find((item) => item.id === suggestion.entryId);
+  return entry ? { record: entry as unknown as Record<string, unknown>, field } : null;
 }

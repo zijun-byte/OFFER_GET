@@ -1,6 +1,6 @@
 import React from 'react';
 import { shellStyles } from '../components/SiteShell';
-import { applyResumeSuggestions, type ResumeSuggestion } from '../../lib/ai/resumeSuggestions';
+import { applyResumeSuggestions, isResumeSuggestionCurrent, type ResumeSuggestion } from '../../lib/ai/resumeSuggestions';
 import styles from './OnlineEditorPage.module.css';
 import type {
   ResumeData,
@@ -46,7 +46,6 @@ export default function EditorSidePanel({
   const [isPolishing, setIsPolishing] = React.useState(false);
   const [polishStatus, setPolishStatus] = React.useState('');
   const [suggestions, setSuggestions] = React.useState<ResumeSuggestion[]>([]);
-  const [selectedSuggestionIds, setSelectedSuggestionIds] = React.useState<Set<string>>(new Set());
 
   async function polishCurrentResume() {
     setIsPolishing(true);
@@ -78,7 +77,6 @@ export default function EditorSidePanel({
         };
       };
       setSuggestions(payload.suggestions || []);
-      setSelectedSuggestionIds(new Set((payload.suggestions || []).map((suggestion) => suggestion.id)));
       const aiSteps = payload.meta?.trace?.filter((step) => step.mode === 'ai') || [];
       const fallbackSteps = payload.meta?.trace?.filter((step) => step.mode === 'local-fallback') || [];
       setPolishStatus(
@@ -93,18 +91,17 @@ export default function EditorSidePanel({
     }
   }
 
-  function applySelectedSuggestions() {
-    setResumeData((current) => applyResumeSuggestions(current, suggestions, selectedSuggestionIds));
-    setPolishStatus(`已应用 ${selectedSuggestionIds.size} 条建议。`);
-    setSuggestions([]);
-    setSelectedSuggestionIds(new Set());
+  function acceptSuggestion(suggestion: ResumeSuggestion) {
+    setResumeData((current) => applyResumeSuggestions(current, [suggestion], new Set([suggestion.id])));
+    setSuggestions((current) => current.filter((item) => item.id !== suggestion.id));
+    setPolishStatus('已接受建议并同步到简历预览。');
   }
 
   return (
     <aside className={styles.sidePanel} aria-label="编辑操作区">
       <span className={styles.sideKicker}>结构化编辑</span>
       <h1>点击模块，左侧编辑</h1>
-      <p>预览由 resumeData 实时渲染。删除某个字段后，该内容会从简历中消失，后续内容自动上移。</p>
+      <p>编辑内容会实时同步到右侧预览。每段经历可独立编辑，AI 建议经你接受后才会写入。</p>
 
       <div className={styles.sectionTabs} aria-label="可编辑模块">
         {sectionOrder.map((section) => {
@@ -136,25 +133,22 @@ export default function EditorSidePanel({
                   </label>
                 ) : null}
               </div>
-              {isOpen ? (
-                <div className={styles.sectionTabContent} id={`editor-section-${section}`}>
-                  <EditorFields activeSection={section} resumeData={resumeData} setResumeData={setResumeData} />
-                </div>
-              ) : null}
+              <div hidden={!isOpen} className={styles.sectionTabContent} id={`editor-section-${section}`}>
+                <EditorFields activeSection={section} resumeData={resumeData} setResumeData={setResumeData} />
+              </div>
             </section>
           );
         })}
       </div>
       {suggestions.length > 0 ? (
         <SuggestionReview
-          onApply={applySelectedSuggestions}
+          resumeData={resumeData}
+          onAccept={acceptSuggestion}
+          onIgnore={(id) => setSuggestions((current) => current.filter((item) => item.id !== id))}
           onCancel={() => {
             setSuggestions([]);
-            setSelectedSuggestionIds(new Set());
-            setPolishStatus('已保留原简历，未应用建议。');
+            setPolishStatus('已忽略剩余建议，保留当前简历内容。');
           }}
-          selectedIds={selectedSuggestionIds}
-          setSelectedIds={setSelectedSuggestionIds}
           suggestions={suggestions}
         />
       ) : null}
@@ -177,16 +171,16 @@ export default function EditorSidePanel({
 }
 
 function SuggestionReview({
-  onApply,
+  resumeData,
+  onAccept,
+  onIgnore,
   onCancel,
-  selectedIds,
-  setSelectedIds,
   suggestions,
 }: {
-  onApply: () => void;
+  resumeData: ResumeData;
+  onAccept: (suggestion: ResumeSuggestion) => void;
+  onIgnore: (id: string) => void;
   onCancel: () => void;
-  selectedIds: Set<string>;
-  setSelectedIds: React.Dispatch<React.SetStateAction<Set<string>>>;
   suggestions: ResumeSuggestion[];
 }) {
   return (
@@ -194,37 +188,27 @@ function SuggestionReview({
       <div className={styles.suggestionHeader}>
         <div>
           <strong>AI 修改建议</strong>
-          <span>勾选后才会写入简历</span>
+          <span>逐条接受后才会写入简历；忽略会保留原文</span>
         </div>
         <button className={styles.suggestionTextButton} onClick={onCancel} type="button">忽略全部</button>
       </div>
       <div className={styles.suggestionList}>
         {suggestions.map((suggestion) => (
-          <label className={styles.suggestionItem} key={suggestion.id}>
-            <input
-              checked={selectedIds.has(suggestion.id)}
-              onChange={(event) => {
-                setSelectedIds((current) => {
-                  const next = new Set(current);
-                  if (event.target.checked) next.add(suggestion.id);
-                  else next.delete(suggestion.id);
-                  return next;
-                });
-              }}
-              type="checkbox"
-            />
+          <article className={styles.suggestionItem} key={suggestion.id}>
             <span className={styles.suggestionContent}>
               <strong>{suggestion.label}</strong>
-              <span className={styles.suggestionBefore}>{suggestion.before || '（原字段为空）'}</span>
-              <span className={styles.suggestionAfter}>{suggestion.after}</span>
+              <span className={styles.suggestionBefore}>原文：{suggestion.before || '（原字段为空）'}</span>
+              <span className={styles.suggestionAfter}>建议：{suggestion.after}</span>
               <small>{suggestion.reason}</small>
+              {!isResumeSuggestionCurrent(resumeData, suggestion) && <small>原文已修改或条目已删除，请忽略此建议并重新润色。</small>}
             </span>
-          </label>
+            <div className={styles.confirmActions}>
+              <button className={shellStyles.button} disabled={!isResumeSuggestionCurrent(resumeData, suggestion)} onClick={() => onAccept(suggestion)} type="button">接受</button>
+              <button className={shellStyles.ghostButton} onClick={() => onIgnore(suggestion.id)} type="button">忽略</button>
+            </div>
+          </article>
         ))}
       </div>
-      <button className={shellStyles.button} disabled={selectedIds.size === 0} onClick={onApply} type="button">
-        应用选中的 {selectedIds.size} 条建议
-      </button>
     </section>
   );
 }
@@ -528,6 +512,7 @@ function EditorFields({
   resumeData: ResumeData;
   setResumeData: React.Dispatch<React.SetStateAction<ResumeData>>;
 }) {
+  const [collapsedEntries, setCollapsedEntries] = React.useState<Set<string>>(new Set());
   if (!activeSection) {
     return <p className={styles.emptyState}>点击右侧简历模块，或在上方选择一个模块进行编辑。</p>;
   }
@@ -655,53 +640,49 @@ function EditorFields({
   }
 
   if (activeSection === 'experiences' || activeSection === 'projects') {
-    const source = activeSection === 'experiences' ? resumeData.experiences : resumeData.projects;
-    const entry = source[0];
-    if (!entry) {
-      return (
-        <EmptySection
-          actionLabel={`新增${sectionLabels[activeSection]}`}
-          label={sectionLabels[activeSection]}
-          onCreate={() =>
-            setResumeData((data) => ({
-              ...data,
-              [activeSection]: [
-                createEmptyEntry(activeSection === 'experiences' ? 'internship' : 'project'),
-                ...data[activeSection],
-              ],
-            }))
-          }
-        />
-      );
-    }
-
     return (
       <div className={styles.editorFields}>
-        <TextField
-          label="名称"
-          value={entry.organization}
-          onChange={(value) => updateEntry(activeSection, setResumeData, { organization: value })}
-        />
-        <TextField
-          label="角色"
-          value={entry.role}
-          onChange={(value) => updateEntry(activeSection, setResumeData, { role: value })}
-        />
-        <TextField
-          label="时间"
-          value={`${entry.startDate} - ${entry.endDate}`}
-          onChange={(value) => updateEntry(activeSection, setResumeData, { ...splitDateRange(entry, value) })}
-        />
-        <TextField
-          label="说明"
-          value={entry.description || ''}
-          onChange={(value) => updateEntry(activeSection, setResumeData, { description: value })}
-        />
-        <TextAreaField
-          label="经历描述"
-          value={entry.bullets.join('\n')}
-          onChange={(value) => updateEntry(activeSection, setResumeData, { bullets: splitLines(value) })}
-        />
+        {resumeData[activeSection].length === 0 && <p className={styles.emptyState}>暂无{sectionLabels[activeSection]}，可以手动新增一段。</p>}
+        {resumeData[activeSection].map((entry, index) => {
+          const entryKey = `${activeSection}-${entry.id}`;
+          const isOpen = !collapsedEntries.has(entryKey);
+          const title = entry.organization || `未命名${sectionLabels[activeSection]} ${index + 1}`;
+          const update = (patch: Partial<Omit<ResumeExperience, 'id'>>) => updateEntry(activeSection, entry.id, setResumeData, patch);
+          return (
+            <article className={styles.experienceEditorCard} key={entry.id}>
+              <button className={styles.sectionTab} type="button" aria-expanded={isOpen} aria-controls={`entry-${entryKey}`} onClick={() => {
+                setCollapsedEntries((current) => {
+                  const next = new Set(current);
+                  if (next.has(entryKey)) next.delete(entryKey);
+                  else next.add(entryKey);
+                  return next;
+                });
+              }}>
+                <span>{title}{entry.role ? ` · ${entry.role}` : ''}</span>
+                <span className={`${styles.sectionChevron} ${isOpen ? styles.sectionChevronOpen : ''}`} aria-hidden="true" />
+              </button>
+              <div className={styles.experienceEditorBody} id={`entry-${entryKey}`} hidden={!isOpen}>
+                <TextField label={activeSection === 'experiences' ? '公司 / 机构' : '项目 / 机构'} value={entry.organization} onChange={(organization) => update({ organization })} />
+                <TextField label="岗位 / 角色" value={entry.role} onChange={(role) => update({ role })} />
+                <div className={styles.experienceDates}>
+                  <TextField label="开始时间" value={entry.startDate} onChange={(startDate) => update({ startDate })} />
+                  <TextField label="结束时间" value={entry.endDate} onChange={(endDate) => update({ endDate })} />
+                </div>
+                <TextField label="说明" value={entry.description || ''} onChange={(description) => update({ description })} />
+                <TextAreaField label="经历描述（每行一条）" value={entry.bullets.join('\n')} onChange={(value) => update({ bullets: splitLines(value) })} />
+                <button className={styles.deleteEntryButton} type="button" onClick={() => {
+                  if (!window.confirm(`确认删除「${title}」？该段经历及其内容会从简历预览中移除。`)) return;
+                  setResumeData((data) => ({ ...data, [activeSection]: data[activeSection].filter((item) => item.id !== entry.id) }));
+                  setCollapsedEntries((current) => { const next = new Set(current); next.delete(entryKey); return next; });
+                }}>删除这段{sectionLabels[activeSection]}</button>
+              </div>
+            </article>
+          );
+        })}
+        <button className={shellStyles.ghostButton} type="button" onClick={() => {
+          const entry = createEmptyEntry(activeSection === 'experiences' ? 'internship' : 'project');
+          setResumeData((data) => ({ ...data, [activeSection]: [...data[activeSection], entry] }));
+        }}>新增一段{sectionLabels[activeSection]}</button>
       </div>
     );
   }
@@ -831,12 +812,13 @@ function splitDateRange<T extends { startDate: string; endDate: string }>(entry:
 
 function updateEntry(
   section: 'experiences' | 'projects',
+  entryId: string,
   setResumeData: React.Dispatch<React.SetStateAction<ResumeData>>,
-  patch: Partial<ResumeData['experiences'][number]>,
+  patch: Partial<Omit<ResumeExperience, 'id'>>,
 ) {
   setResumeData((data) => ({
     ...data,
-    [section]: data[section].map((item, index) => (index === 0 ? { ...item, ...patch } : item)),
+    [section]: data[section].map((item) => (item.id === entryId ? { ...item, ...patch } : item)),
   }));
 }
 
@@ -981,7 +963,7 @@ function extractProject(input: string): AgentDraft['project'] {
 
 function createEmptyEntry(type: ResumeExperience['type']): ResumeExperience {
   return {
-    id: `${type}-manual-${Date.now()}`,
+    id: `${type}-manual-${crypto.randomUUID()}`,
     organization: '',
     role: '',
     type,

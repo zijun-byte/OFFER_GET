@@ -885,6 +885,68 @@
 .suggestionBefore { background: #f5f6f5; color: #6d756f; text-decoration: line-through; }
 .suggestionAfter { background: #eaf7ef; color: #164d2e; }
 .suggestionContent small { margin-top: 7px; color: #66786d; line-height: 1.5; }
+
+.sectionTabContent[hidden],
+.experienceEditorBody[hidden] {
+  display: none;
+}
+
+.experienceEditorCard {
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid #dcebe2;
+  border-radius: 8px;
+  background: #ffffff;
+}
+
+.experienceEditorCard .sectionTab {
+  gap: 12px;
+  padding: 12px;
+}
+
+.experienceEditorCard .sectionTab > span:first-child {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.experienceEditorCard .sectionChevron { flex-shrink: 0; }
+
+.experienceEditorBody {
+  display: grid;
+  gap: 12px;
+  padding: 12px;
+  border-top: 1px solid #e7f1eb;
+}
+
+.experienceDates {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.deleteEntryButton {
+  justify-self: start;
+  padding: 8px 0;
+  border: 0;
+  background: transparent;
+  color: #a13a3a;
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.sidePanel,
+.fieldLabel,
+.resumeMain,
+.entryHead > div { min-width: 0; }
+
+.resumePaper,
+.suggestionContent { overflow-wrap: anywhere; }
+
+.suggestionHeader { flex-wrap: wrap; }
+.suggestionTextButton { min-height: 32px; }
+.suggestionItem { grid-template-columns: minmax(0, 1fr); cursor: default; }
+.suggestionBefore { text-decoration: none; }
 @media (max-width: 980px) {
   .editorStage {
     grid-template-columns: 1fr;
