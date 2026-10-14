@@ -11,6 +11,7 @@ export type Message = {
   quickCard?: {
     title: string;
     items: string[];
+    suggestions?: boolean;
   };
 };
 

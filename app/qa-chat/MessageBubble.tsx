@@ -3,9 +3,10 @@ import type { Message } from './chatMessages';
 
 type MessageBubbleProps = {
   message: Message;
+  onPickSuggestion: (text: string) => void;
 };
 
-export default function MessageBubble({ message }: MessageBubbleProps) {
+export default function MessageBubble({ message, onPickSuggestion }: MessageBubbleProps) {
   return (
     <div className={`${styles.messageRow} ${message.role === 'user' ? styles.userRow : ''}`}>
       {message.role === 'ai' ? <span className={`${styles.avatar} ${styles.aiAvatar}`}>AI</span> : null}
@@ -14,9 +15,13 @@ export default function MessageBubble({ message }: MessageBubbleProps) {
         {message.quickCard ? (
           <div className={styles.quickCard}>
             <strong>{message.quickCard.title}</strong>
-            {message.quickCard.items.map((item) => (
-              <span key={item}>{item}</span>
-            ))}
+            {message.quickCard.suggestions
+              ? message.quickCard.items.map((item) => (
+                  <button key={item} onClick={() => onPickSuggestion(item)} type="button">
+                    {item}
+                  </button>
+                ))
+              : message.quickCard.items.map((item) => <span key={item}>{item}</span>)}
           </div>
         ) : null}
       </div>

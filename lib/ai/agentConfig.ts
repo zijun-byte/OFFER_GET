@@ -2,6 +2,7 @@ import { promises as fs } from 'fs';
 import path from 'path';
 
 import photoEnhancerConfig from '../../ai-config/agents/photo-enhancer.json';
+import qaChatConfig from '../../ai-config/agents/qa-chat.json';
 import resumeAnalystConfig from '../../ai-config/agents/resume-analyst.json';
 import resumeExtractorConfig from '../../ai-config/agents/resume-extractor.json';
 import resumeGuardConfig from '../../ai-config/agents/resume-guard.json';
@@ -31,6 +32,7 @@ export type CreateAgentInput = Omit<AgentConfig, 'id' | 'promptVersion'> & {
 const AGENT_CONFIG_DIR = path.join(process.cwd(), 'ai-config', 'agents');
 const CANONICAL_AGENT_NAMES: Record<string, string> = {
   'photo-enhancer': '证件照优化 Agent',
+  'qa-chat': '求职问答 Agent',
   'resume-analyst': '简历分析智能体',
   'resume-extractor': '简历字段提取智能体',
   'resume-guard': '简历事实守卫智能体',
@@ -40,6 +42,7 @@ const CANONICAL_AGENT_NAMES: Record<string, string> = {
 };
 const BUNDLED_AGENT_CONFIGS: Record<string, unknown> = {
   'photo-enhancer': photoEnhancerConfig,
+  'qa-chat': qaChatConfig,
   'resume-analyst': resumeAnalystConfig,
   'resume-extractor': resumeExtractorConfig,
   'resume-guard': resumeGuardConfig,
