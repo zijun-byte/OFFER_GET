@@ -1,61 +1,48 @@
 .stage {
   display: grid;
-  gap: 26px;
-  padding: 42px 0 90px;
+  gap: 20px;
+  padding: 0 0 48px;
 }
 
 .intro {
-  max-width: 840px;
-}
-
-.eyebrow {
-  display: inline-flex;
-  align-items: center;
-  min-height: 34px;
-  padding: 0 14px;
-  border-radius: 999px;
-  background: var(--green-soft);
-  color: var(--green-dark);
-  font-size: 14px;
-  font-weight: 800;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 6px 14px;
 }
 
 .intro h1 {
-  margin: 20px 0 14px;
-  font-size: clamp(38px, 5vw, 64px);
-  line-height: 1.08;
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 24px;
+  font-weight: 800;
+  line-height: 1.3;
 }
 
 .intro p {
   margin: 0;
   color: var(--muted);
-  font-size: 18px;
-  line-height: 1.8;
+  font-size: 14px;
+  line-height: 1.6;
 }
 
 .layout {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 360px;
-  gap: 24px;
+  grid-template-columns: minmax(0, 1fr) 340px;
+  gap: 20px;
   align-items: start;
 }
 
 .form {
   display: grid;
-  gap: 18px;
+  gap: 16px;
 }
 
 .panel,
 .previewPanel {
-  border: 1px solid rgba(52, 191, 111, 0.34);
-  border-radius: 8px;
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.97), rgba(252, 255, 253, 0.94)),
-    var(--white);
-  box-shadow:
-    0 24px 70px rgba(22, 128, 78, 0.11),
-    0 0 0 8px rgba(218, 252, 231, 0.26),
-    0 0 42px rgba(54, 224, 128, 0.12);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-l);
+  background: var(--paper);
 }
 
 .panel {
@@ -67,7 +54,8 @@
 .panel h2,
 .previewPanel h2 {
   margin: 0;
-  font-size: 22px;
+  font-size: 16px;
+  font-weight: 800;
 }
 
 .grid {
@@ -78,36 +66,42 @@
 
 .field {
   display: grid;
-  gap: 7px;
+  gap: 6px;
 }
 
 .field label {
-  color: var(--green-dark);
+  color: var(--ink-soft);
   font-size: 13px;
-  font-weight: 900;
+  font-weight: 700;
 }
 
 .input,
 .textarea {
   width: 100%;
-  border: 1px solid #dbece2;
-  border-radius: 8px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-m);
   outline: 0;
-  background: rgba(255, 255, 255, 0.96);
+  background: var(--paper);
   color: var(--ink);
   font: inherit;
   font-size: 14px;
-  font-weight: 700;
+  transition: border-color 160ms ease, box-shadow 160ms ease;
+}
+
+.input:focus,
+.textarea:focus {
+  border-color: var(--green);
+  box-shadow: 0 0 0 3px rgba(16, 168, 102, 0.16);
 }
 
 .input {
-  height: 44px;
+  height: 42px;
   padding: 0 12px;
 }
 
 .textarea {
   min-height: 110px;
-  padding: 12px;
+  padding: 10px 12px;
   line-height: 1.7;
   resize: vertical;
 }
@@ -119,27 +113,30 @@
 
 .error {
   margin: 0;
-  color: #b42318;
-  font-size: 14px;
-  font-weight: 800;
-  text-align: right;
+  padding: 8px 12px;
+  border-left: 3px solid var(--danger);
+  border-radius: 4px;
+  background: var(--danger-soft);
+  color: var(--danger);
+  font-size: 13px;
+  font-weight: 600;
 }
 
 .previewPanel {
   position: sticky;
-  top: 20px;
+  top: 88px;
   display: grid;
-  gap: 14px;
-  padding: 18px;
+  gap: 12px;
+  padding: 16px;
 }
 
 .previewImage {
   display: block;
   width: 100%;
   height: auto;
-  border: 1px solid #e5eee8;
-  border-radius: 8px;
-  background: #fbfdfb;
+  border-radius: 4px;
+  background: var(--paper);
+  box-shadow: 0 0 0 1px rgba(15, 42, 32, 0.08), 0 18px 30px -20px rgba(15, 42, 32, 0.4);
 }
 
 .note {
@@ -156,6 +153,7 @@
 
   .previewPanel {
     position: static;
+    max-width: 420px;
   }
 }
 

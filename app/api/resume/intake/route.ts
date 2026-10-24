@@ -5,7 +5,7 @@ import {
 } from '../../../../lib/ai/agents/resumeIntakeAgent';
 import type { ResumeData } from '../../../online-editor/resumePreviewData';
 
-const guidedStepIds: GuidedStepId[] = ['targetRole', 'basics', 'education', 'experience', 'project', 'skills'];
+const guidedStepIds: GuidedStepId[] = ['targetRole', 'basics', 'portfolio', 'education', 'experience', 'project', 'skills'];
 
 export async function POST(request: Request) {
   const body = await request.json().catch(() => null);

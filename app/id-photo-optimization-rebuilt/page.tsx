@@ -1,6 +1,6 @@
 'use client';
 
-import Link from 'next/link';
+import SiteShell from '../components/SiteShell';
 import { ChangeEvent, useEffect, useMemo, useState } from 'react';
 import styles from './IdPhotoPage.module.css';
 import IdPhotoPreview from './IdPhotoPreview';
@@ -13,15 +13,14 @@ import {
   type SizeKey,
   type StyleKey,
 } from './idPhotoContent';
-import ParticleBackdrop from './ParticleBackdrop';
 import PhotoUploadPanel from './PhotoUploadPanel';
-import StyleChoiceGrid from './StyleChoiceGrid';
 
-const navItems = [
-  { label: '证件照优化', href: '/id-photo-optimization-rebuilt', active: true },
-  { label: '简历优化', href: '/resume-optimization' },
-  { label: '提前问答', href: '/advance-qa' },
-  { label: '运势占卜', href: '/tarot-fortune' },
+const MAX_PHOTO_BYTES = 8 * 1024 * 1024;
+
+const modeOptions: { key: StyleKey; label: string }[] = [
+  { key: 'traditional', label: '传统证件照' },
+  { key: 'modern', label: '新式证件照' },
+  { key: 'custom', label: '自定义' },
 ];
 
 type CropArea = {
@@ -139,6 +138,17 @@ export default function IdPhotoOptimizationPage() {
       return;
     }
 
+    if (file.size > MAX_PHOTO_BYTES) {
+      event.target.value = '';
+      setFileName('未选择文件');
+      setPreviewUrl('');
+      setSourceImageDataUrl('');
+      setGeneratedImageUrl('');
+      setResultReady(false);
+      setExportError(`这张照片有 ${(file.size / 1024 / 1024).toFixed(1)}MB，超过 8MB 上限。请压缩或换一张后再上传。`);
+      return;
+    }
+
     setFileName(file.name);
     setPreviewUrl(URL.createObjectURL(file));
     setSourceImageDataUrl('');
@@ -211,55 +221,49 @@ export default function IdPhotoOptimizationPage() {
   }
 
   return (
-    <main className={styles.root}>
-      <ParticleBackdrop />
+    <SiteShell active="photo">
 
       <div className={styles.page}>
-        <header className={styles.siteHeader}>
-          <Link className={styles.brand} href="/">
-            <span className={styles.brandName}>Offer_GET</span>
-            <span className={styles.brandTagline}>证件照优化工作台</span>
-          </Link>
 
-          <nav className={styles.nav} aria-label="主导航">
-            {navItems.map((item) => (
-              <Link className={item.active ? styles.navCurrent : undefined} href={item.href} key={item.href}>
-                {item.label}
-              </Link>
-            ))}
-            <Link className={styles.navPrimary} href="/">
-              开始准备
-            </Link>
-          </nav>
-        </header>
-
-        <section className={styles.hero} aria-labelledby="hero-title">
-          <div>
-            <span className={styles.eyebrow}>AI 证件照优化 / 为求职第一印象做准备</span>
-            <h1 id="hero-title" className={styles.heroTitle}>
-              普通照片，可以让你很专业
-            </h1>
-            <p className={styles.heroCopy}>
-              先上传一张照片，再选择你喜欢的方向：传统证件照、新式证件照，或自定义照片设计。页面会提供预览感、风格感和输出感，让你在求职前准备里更从容一点。
-            </p>
-            <div className={styles.heroActions}>
-              <Link className={styles.button} href="#upload">
-                上传照片
-              </Link>
-              <Link className={`${styles.button} ${styles.secondaryButton}`} href="#choices">
-                选择风格
-              </Link>
-            </div>
-          </div>
-
+        <div className={styles.studioGrid}>
           <PhotoUploadPanel
             fileName={fileName}
             previewImageUrl={previewImageUrl}
             onPhotoChange={handlePhotoChange}
           />
-        </section>
-
-        <StyleChoiceGrid selectedStyle={selectedStyle} onSelectStyle={setSelectedStyle} />
+          <div className={styles.settingsCard}>
+            <h2>生成设置</h2>
+            <fieldset className={styles.choiceField}>
+              <legend>生成模式</legend>
+              <div className={styles.segmented}>
+                {modeOptions.map((option) => (
+                  <button
+                    aria-pressed={selectedStyle === option.key}
+                    key={option.key}
+                    onClick={() => setSelectedStyle(option.key)}
+                    type="button"
+                  >
+                    {option.label}
+                  </button>
+                ))}
+              </div>
+            </fieldset>
+            <fieldset className={styles.choiceField}>
+              <legend>照片规格</legend>
+              <div className={styles.sizeChips}>
+                {(Object.keys(sizeOptions) as SizeKey[]).map((key) => (
+                  <button
+                    aria-pressed={selectedSize === key}
+                    key={key}
+                    onClick={() => handleSelectSize(key)}
+                    type="button"
+                  >
+                    <span>{sizeOptions[key].label}</span>
+                    <em>{key === 'free' ? '生成后拖动裁剪' : `${sizeOptions[key].width} × ${sizeOptions[key].height}`}</em>
+                  </button>
+                ))}
+              </div>
+            </fieldset>
         <IdPhotoPreview
           fileName={fileName}
           freeCropArea={freeCropArea}
@@ -281,7 +285,9 @@ export default function IdPhotoOptimizationPage() {
           setSelectedModernStyle={setSelectedModernStyle}
           setSelectedSize={handleSelectSize}
         />
+          </div>
+        </div>
       </div>
-    </main>
+    </SiteShell>
   );
 }

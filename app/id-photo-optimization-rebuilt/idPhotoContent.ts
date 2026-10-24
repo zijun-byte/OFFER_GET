@@ -105,7 +105,7 @@ export const sizeOptions = {
     ratio: '自由比例',
     width: 1200,
     height: 1200,
-    copy: '后续用于开放拖拽裁剪框，先保留为自由裁剪入口。',
+    copy: '拖动照片上的裁剪框，按需要的比例导出。',
   },
 } as const;
 

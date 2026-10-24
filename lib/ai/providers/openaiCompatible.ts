@@ -1,6 +1,6 @@
 type ChatCompletionMessage = {
   role: 'system' | 'user';
-  content: string;
+  content: string | Array<{ type: 'text'; text: string } | { type: 'image_url'; image_url: { url: string } }>;
 };
 
 type ChatCompletionOptions = {
@@ -20,6 +20,7 @@ export async function runOpenAICompatibleJson<T>(options: ChatCompletionOptions)
   }
 
   const response = await fetch(`${baseUrl.replace(/\/$/, '')}/chat/completions`, {
+    signal: AbortSignal.timeout(60000),
     method: 'POST',
     headers: {
       Authorization: `Bearer ${apiKey}`,

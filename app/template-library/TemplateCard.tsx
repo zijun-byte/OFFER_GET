@@ -12,30 +12,41 @@ type TemplateCardProps = {
 export default function TemplateCard({ template, onPreview, onUse }: TemplateCardProps) {
   return (
     <article className={styles.templateCard}>
+      <button
+        aria-label={`放大预览：${template.title}`}
+        className={styles.sheet}
+        onClick={() => onPreview(template)}
+        type="button"
+      >
+        <Image
+          alt=""
+          className={styles.resumePreview}
+          height={640}
+          src={template.image}
+          width={460}
+        />
+        <span className={styles.sheetHint} aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+            <circle cx="11" cy="11" r="6" />
+            <path d="M20 20l-4.2-4.2M11 8.5v5M8.5 11h5" />
+          </svg>
+          放大看
+        </span>
+      </button>
+
       <div className={styles.templateMeta}>
-        <div>
+        <div className={styles.titleRow}>
           <h2 className={styles.templateTitle}>{template.title}</h2>
-          <p className={styles.templateDesc}>{template.description}</p>
+          <span className={`${styles.tag} ${template.outputType === 'docx' ? styles.tagDocx : ''}`}>{template.tag}</span>
         </div>
-        <span className={styles.tag}>{template.tag}</span>
+        <p className={styles.templateDesc}>{template.description}</p>
       </div>
-      <Image
-        alt={`${template.title}简历模板预览`}
-        className={styles.resumePreview}
-        height={640}
-        src={template.image}
-        width={460}
-      />
+
       <div className={styles.cardActions}>
         <span className={styles.smallNote}>{template.note}</span>
-        <div className={styles.actionButtons}>
-          <button className={shellStyles.ghostButton} onClick={() => onPreview(template)} type="button">
-            预览
-          </button>
-          <button className={shellStyles.button} onClick={() => onUse(template)} type="button">
-            使用模板
-          </button>
-        </div>
+        <a className={shellStyles.button} href={template.outputType === 'docx' ? `/docx-template/${encodeURIComponent(template.id)}` : `/online-editor?template=${encodeURIComponent(template.id)}`} onClick={() => onUse(template)}>
+          {template.outputType === 'docx' ? '生成 Word' : '使用模板'}
+        </a>
       </div>
     </article>
   );

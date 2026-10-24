@@ -238,6 +238,10 @@ export default function IdPhotoPreview({
             <button className={styles.optimizeButton} onClick={onDownload} type="button">
               下载 PNG
             </button>
+            <button className={styles.secondaryButton} disabled={isProcessing} onClick={onOptimize} type="button">
+              {isProcessing ? '正在重新生成' : '不满意，重新生成'}
+            </button>
+            {exportError ? <span className={styles.errorText}>{exportError}</span> : null}
           </aside>
         </div>
       ) : (
@@ -267,13 +271,16 @@ export default function IdPhotoPreview({
                 <div className={styles.swatchRow}>
                   {(Object.keys(backgroundOptions) as BackgroundKey[]).map((key) => (
                     <button
-                      aria-label={backgroundOptions[key].label}
-                      className={key === selectedBackground ? styles.swatchActive : undefined}
+                      aria-pressed={key === selectedBackground}
+                      className={`${styles.swatchOption} ${key === selectedBackground ? styles.swatchActive : ''}`}
                       key={key}
                       onClick={() => setSelectedBackground(key)}
                       style={{ '--swatch': backgroundOptions[key].value } as CSSProperties}
                       type="button"
-                    />
+                    >
+                      <i aria-hidden="true" />
+                      <span>{backgroundOptions[key].label}</span>
+                    </button>
                   ))}
                 </div>
                 <p>{selectedBackgroundCopy.copy}</p>

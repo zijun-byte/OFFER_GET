@@ -1,5 +1,61 @@
+/* Bricolage Grotesque (SIL OFL 1.1, see /public/fonts) — Latin display face for the wordmark and numerals. */
+@font-face {
+  font-family: 'Bricolage Grotesque';
+  src: url('/fonts/bricolage-grotesque-latin.woff2') format('woff2');
+  font-weight: 200 800;
+  font-stretch: 75% 100%;
+  font-display: swap;
+}
+
+/*
+ * 薄荷纸页 design tokens.
+ * Legacy names (--green, --ink, --muted, --line …) are kept so every page module inherits the new palette.
+ */
+:root {
+  color-scheme: light;
+
+  --mist: #eef3ef;
+  --paper: #ffffff;
+  --paper-tint: #f7faf8;
+  --ink: #0f2a20;
+  --ink-soft: #3d5a4d;
+  --muted: #61776c;
+  --line: #dbe6df;
+  --line-strong: #c4d6cb;
+
+  --green: #10a866;
+  --green-dark: #0a7a49;
+  --green-strong: #0a7a49;
+  --green-soft: #e3f4ea;
+  --white: #ffffff;
+
+  --marker: #d4f25c;
+  --marker-ink: #213400;
+  --ai: #6c4cf5;
+  --ai-soft: #efebff;
+  --danger: #b73a3a;
+  --danger-soft: #fff3f2;
+
+  --font-display: 'Bricolage Grotesque', 'PingFang SC', 'Microsoft YaHei', system-ui, sans-serif;
+  --font-body: 'PingFang SC', 'HarmonyOS Sans SC', 'Microsoft YaHei', 'Noto Sans SC', system-ui, sans-serif;
+
+  --radius-s: 8px;
+  --radius-m: 14px;
+  --radius-l: 22px;
+
+  --lift-1: 0 1px 0 rgba(15, 42, 32, 0.04), 0 6px 18px -10px rgba(15, 42, 32, 0.18);
+  --lift-2: 0 1px 0 rgba(15, 42, 32, 0.05), 0 22px 44px -24px rgba(15, 42, 32, 0.32);
+
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  --header-h: 68px;
+  --side-w: 172px;
+}
+
 html {
   scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
 }
 
 *,
@@ -10,8 +66,63 @@ html {
 
 body {
   margin: 0;
+  background: var(--mist);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 15px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
 }
 
 img {
   max-width: 100%;
+}
+
+::selection {
+  background: var(--marker);
+  color: var(--marker-ink);
+}
+
+:focus-visible {
+  outline: 2px solid var(--green);
+  outline-offset: 2px;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: #8fa59a;
+}
+
+/* Thin, quiet scrollbars inside panels */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #c4d6cb transparent;
+}
+
+/* Visually hidden but available to assistive tech */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }

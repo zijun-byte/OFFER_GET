@@ -29,7 +29,7 @@ type BlobCursorProps = {
 
 export default function BlobCursor({
   blobType = 'circle',
-  fillColor = '#dff8df',
+  fillColor = '#e4f7a0',
   trailCount = 2,
   sizes = [34, 58],
   innerSizes = [10, 18],
@@ -73,6 +73,14 @@ export default function BlobCursor({
   );
 
   useEffect(() => {
+    // Decorative only: skip on touch screens and when the user prefers less motion.
+    const finePointer = window.matchMedia('(pointer: fine)').matches;
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (!finePointer || reduceMotion) {
+      if (containerRef.current) containerRef.current.style.display = 'none';
+      return;
+    }
+
     window.addEventListener('mousemove', handleMove);
     window.addEventListener('touchmove', handleMove, { passive: true });
 

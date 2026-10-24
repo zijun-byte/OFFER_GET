@@ -12,6 +12,8 @@ import type {
 } from './resumePreviewData';
 
 type EditorSidePanelProps = {
+  assistant?: React.ReactNode;
+  fieldsOnly?: boolean;
   activeSection: ResumeEditorSection | null;
   resumeData: ResumeData;
   setActiveSection: (section: ResumeEditorSection | null) => void;
@@ -42,6 +44,8 @@ export default function EditorSidePanel({
   setResumeData,
   setVisibleSections,
   visibleSections,
+  assistant,
+  fieldsOnly = false,
 }: EditorSidePanelProps) {
   const [isPolishing, setIsPolishing] = React.useState(false);
   const [polishStatus, setPolishStatus] = React.useState('');
@@ -99,29 +103,24 @@ export default function EditorSidePanel({
 
   return (
     <aside className={styles.sidePanel} aria-label="编辑操作区">
-      <span className={styles.sideKicker}>结构化编辑</span>
-      <h1>点击模块，左侧编辑</h1>
-      <p>编辑内容会实时同步到右侧预览。每段经历可独立编辑，AI 建议经你接受后才会写入。</p>
+      <span className={styles.sideKicker}>当前正在编辑</span>
+      <label className={styles.fieldLabel}>
+        <select aria-label="当前编辑模块" className={styles.fieldInput} value={activeSection || 'basics'} onChange={(event) => setActiveSection(event.target.value as ResumeEditorSection)}>
+          {sectionOrder.map((section) => <option value={section} key={section}>{sectionLabels[section]}</option>)}
+        </select>
+      </label>
 
       <div className={styles.sectionTabs} aria-label="可编辑模块">
         {sectionOrder.map((section) => {
-          const isOpen = activeSection === section;
+          if (section !== (activeSection || 'basics')) return null;
+          const isOpen = true;
           const visibilityKey = sectionVisibilityKeys[section];
           return (
             <section className={`${styles.sectionAccordionItem} ${isOpen ? styles.sectionAccordionItemOpen : ''}`} key={section}>
               <div className={styles.sectionTabRow}>
-                <button
-                  aria-controls={`editor-section-${section}`}
-                  aria-expanded={isOpen}
-                  className={`${styles.sectionTab} ${isOpen ? styles.sectionTabActive : ''}`}
-                  onClick={() => setActiveSection(isOpen ? null : section)}
-                  type="button"
-                >
-                  <span>{sectionLabels[section]}</span>
-                  <span className={`${styles.sectionChevron} ${isOpen ? styles.sectionChevronOpen : ''}`} aria-hidden="true" />
-                </button>
                 {visibilityKey ? (
                   <label className={styles.sectionVisibilityControl} title="显示在右侧简历预览">
+                    显示在简历中
                     <input
                       aria-label={`显示${sectionLabels[section]}`}
                       checked={visibleSections[visibilityKey]}
@@ -152,20 +151,17 @@ export default function EditorSidePanel({
           suggestions={suggestions}
         />
       ) : null}
-      <AgentComposer setActiveSection={setActiveSection} setResumeData={setResumeData} />
+      {!fieldsOnly && (assistant || <AgentComposer setActiveSection={setActiveSection} setResumeData={setResumeData} />)}
 
-      <div className={styles.sideActions}>
+      {!fieldsOnly && <div className={styles.sideActions}>
         {polishStatus ? <p className={styles.polishStatus}>{polishStatus}</p> : null}
         <button className={shellStyles.ghostButton} disabled={isPolishing} onClick={polishCurrentResume} type="button">
           {isPolishing ? 'Polishing...' : '基础润色'}
         </button>
-        <button className={shellStyles.button} type="button">
+        <button className={shellStyles.button} onClick={() => window.print()} type="button">
           下载 PDF
         </button>
-        <button className={shellStyles.ghostButton} type="button">
-          下载图片
-        </button>
-      </div>
+      </div>}
     </aside>
   );
 }
@@ -341,7 +337,6 @@ function AgentComposer({
     <section className={styles.agentComposer} aria-label="AI 简历输入">
       <div className={styles.agentHeader}>
         <span>Agent 写入</span>
-        <strong>先确认，再进简历</strong>
       </div>
       <textarea
         className={styles.agentInput}
@@ -583,13 +578,14 @@ function EditorFields({
 
     return (
       <div className={styles.editorFields}>
+        {resumeData.education.map((education) => <div className={styles.skillEditorCard} key={education.id}>
         <TextField
           label="学校"
           value={education.school}
           onChange={(value) =>
             setResumeData((data) => ({
               ...data,
-              education: data.education.map((item, index) => (index === 0 ? { ...item, school: value } : item)),
+              education: data.education.map((item) => (item.id === education.id ? { ...item, school: value } : item)),
             }))
           }
         />
@@ -599,7 +595,7 @@ function EditorFields({
           onChange={(value) =>
             setResumeData((data) => ({
               ...data,
-              education: data.education.map((item, index) => (index === 0 ? { ...item, major: value } : item)),
+              education: data.education.map((item) => (item.id === education.id ? { ...item, major: value } : item)),
             }))
           }
         />
@@ -609,32 +605,34 @@ function EditorFields({
           onChange={(value) =>
             setResumeData((data) => ({
               ...data,
-              education: data.education.map((item, index) => (index === 0 ? { ...item, degree: value } : item)),
+              education: data.education.map((item) => (item.id === education.id ? { ...item, degree: value } : item)),
             }))
           }
         />
         <TextField
-          label="时间"
-          value={`${education.startDate} - ${education.endDate}`}
+          label="开始时间"
+          value={education.startDate}
           onChange={(value) =>
             setResumeData((data) => ({
               ...data,
-              education: data.education.map((item, index) => (index === 0 ? splitDateRange(item, value) : item)),
+              education: data.education.map((item) => (item.id === education.id ? { ...item, startDate: value } : item)),
             }))
           }
         />
+        <TextField label="结束时间" value={education.endDate} onChange={(value) => setResumeData((data) => ({ ...data, education: data.education.map((item) => item.id === education.id ? { ...item, endDate: value } : item) }))} />
         <TextAreaField
           label="亮点"
           value={education.highlights.join('\n')}
           onChange={(value) =>
             setResumeData((data) => ({
               ...data,
-              education: data.education.map((item, index) =>
-                index === 0 ? { ...item, highlights: splitLines(value) } : item,
+              education: data.education.map((item) =>
+                item.id === education.id ? { ...item, highlights: splitLines(value) } : item,
               ),
             }))
           }
         />
+        </div>)}
       </div>
     );
   }
@@ -648,8 +646,13 @@ function EditorFields({
           const isOpen = !collapsedEntries.has(entryKey);
           const title = entry.organization || `未命名${sectionLabels[activeSection]} ${index + 1}`;
           const update = (patch: Partial<Omit<ResumeExperience, 'id'>>) => updateEntry(activeSection, entry.id, setResumeData, patch);
+          const deleteEntry = () => {
+            if (!window.confirm(`确认删除「${title}」？该段经历及其内容会从简历预览中移除。`)) return;
+            setResumeData((data) => ({ ...data, [activeSection]: data[activeSection].filter((item) => item.id !== entry.id) }));
+            setCollapsedEntries((current) => { const next = new Set(current); next.delete(entryKey); return next; });
+          };
           return (
-            <article className={styles.experienceEditorCard} key={entry.id}>
+            <EntryContextCard key={entry.id} onDelete={deleteEntry}>
               <button className={styles.sectionTab} type="button" aria-expanded={isOpen} aria-controls={`entry-${entryKey}`} onClick={() => {
                 setCollapsedEntries((current) => {
                   const next = new Set(current);
@@ -670,13 +673,9 @@ function EditorFields({
                 </div>
                 <TextField label="说明" value={entry.description || ''} onChange={(description) => update({ description })} />
                 <TextAreaField label="经历描述（每行一条）" value={entry.bullets.join('\n')} onChange={(value) => update({ bullets: splitLines(value) })} />
-                <button className={styles.deleteEntryButton} type="button" onClick={() => {
-                  if (!window.confirm(`确认删除「${title}」？该段经历及其内容会从简历预览中移除。`)) return;
-                  setResumeData((data) => ({ ...data, [activeSection]: data[activeSection].filter((item) => item.id !== entry.id) }));
-                  setCollapsedEntries((current) => { const next = new Set(current); next.delete(entryKey); return next; });
-                }}>删除这段{sectionLabels[activeSection]}</button>
+                <button className={styles.deleteEntryButton} type="button" onClick={deleteEntry}>删除这段{sectionLabels[activeSection]}</button>
               </div>
-            </article>
+            </EntryContextCard>
           );
         })}
         <button className={shellStyles.ghostButton} type="button" onClick={() => {
@@ -742,6 +741,39 @@ function EditorFields({
       ) : null}
     </div>
   );
+}
+
+function EntryContextCard({ children, onDelete }: { children: React.ReactNode; onDelete: () => void }) {
+  const [menu, setMenu] = React.useState<{ x: number; y: number } | null>(null);
+  const menuRef = React.useRef<HTMLDivElement>(null);
+  React.useEffect(() => {
+    if (!menu) return;
+    menuRef.current?.querySelector('button')?.focus();
+    const close = () => setMenu(null);
+    const outside = (event: PointerEvent) => { if (!menuRef.current?.contains(event.target as Node)) close(); };
+    const escape = (event: KeyboardEvent) => { if (event.key === 'Escape') close(); };
+    window.addEventListener('pointerdown', outside);
+    window.addEventListener('keydown', escape);
+    window.addEventListener('scroll', close, true);
+    window.addEventListener('resize', close);
+    return () => {
+      window.removeEventListener('pointerdown', outside);
+      window.removeEventListener('keydown', escape);
+      window.removeEventListener('scroll', close, true);
+      window.removeEventListener('resize', close);
+    };
+  }, [menu]);
+  return <article className={styles.experienceEditorCard} onContextMenu={(event) => {
+    // Preserve the native edit menu inside text fields.
+    if ((event.target as HTMLElement).closest('input, textarea')) return;
+    event.preventDefault();
+    setMenu({ x: Math.max(8, Math.min(event.clientX, window.innerWidth - 168)), y: Math.max(8, Math.min(event.clientY, window.innerHeight - 64)) });
+  }}>
+    {children}
+    {menu && <div ref={menuRef} className={styles.entryContextMenu} role="menu" aria-label="经历操作" style={{ left: menu.x, top: menu.y }}>
+      <button type="button" role="menuitem" onClick={() => { setMenu(null); onDelete(); }}>删除这段经历</button>
+    </div>}
+  </article>;
 }
 
 function TextField({ label, value, onChange }: { label: string; value: string; onChange: (value: string) => void }) {
@@ -963,7 +995,7 @@ function extractProject(input: string): AgentDraft['project'] {
 
 function createEmptyEntry(type: ResumeExperience['type']): ResumeExperience {
   return {
-    id: `${type}-manual-${crypto.randomUUID()}`,
+    id: `${type}-manual-${globalThis.crypto?.randomUUID?.() || `${Date.now()}-${Math.random().toString(36).slice(2)}`}`,
     organization: '',
     role: '',
     type,

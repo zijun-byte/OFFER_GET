@@ -1,7 +1,7 @@
 'use client';
 
-import { FormEvent, useEffect, useState } from 'react';
-import JobPrepShell from '../components/JobPrepShell';
+import { useEffect, useState } from 'react';
+import SiteShell from '../components/SiteShell';
 import AdvanceQaForm from './AdvanceQaForm';
 import styles from './AdvanceQaPage.module.css';
 import type { Draft } from './qaFields';
@@ -16,30 +16,33 @@ export default function AdvanceQaPage() {
   });
 
   useEffect(() => {
-    const savedDraft = localStorage.getItem(QA_STORAGE_KEY);
-    if (!savedDraft) return;
-
     try {
+      const savedDraft = localStorage.getItem(QA_STORAGE_KEY);
+      if (!savedDraft) return;
       const parsedDraft = JSON.parse(savedDraft) as Partial<Draft>;
       setDraft({
-        company: parsedDraft.company || '',
-        role: parsedDraft.role || '',
-        resume: parsedDraft.resume || '',
+        company: typeof parsedDraft.company === 'string' ? parsedDraft.company : '',
+        role: typeof parsedDraft.role === 'string' ? parsedDraft.role : '',
+        resume: typeof parsedDraft.resume === 'string' ? parsedDraft.resume : '',
       });
     } catch {
-      localStorage.removeItem(QA_STORAGE_KEY);
+      // The form remains usable when storage is unavailable or the saved draft is invalid.
     }
   }, []);
 
   function saveDraft(nextDraft: Draft) {
-    localStorage.setItem(
-      QA_STORAGE_KEY,
-      JSON.stringify({
-        company: nextDraft.company.trim(),
-        role: nextDraft.role.trim(),
-        resume: nextDraft.resume.trim(),
-      }),
-    );
+    try {
+      localStorage.setItem(
+        QA_STORAGE_KEY,
+        JSON.stringify({
+          company: nextDraft.company.trim(),
+          role: nextDraft.role.trim(),
+          resume: nextDraft.resume.trim(),
+        }),
+      );
+    } catch {
+      // Keep answering and switching questions even if the browser cannot save a draft.
+    }
   }
 
   function updateDraft(field: keyof Draft, value: string) {
@@ -48,27 +51,16 @@ export default function AdvanceQaPage() {
     saveDraft(nextDraft);
   }
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
+  function handleSubmit() {
     saveDraft(draft);
     window.location.href = '/qa-chat';
   }
 
   return (
-    <JobPrepShell active="qa">
+    <SiteShell active="qa">
       <section className={styles.qaStage}>
-        <div className={styles.heroCopy} aria-labelledby="qa-title">
-          <span className={styles.eyebrow}>AI 投递前问答 / 岗位理解与匹配建议</span>
-          <h1 id="qa-title" className={styles.title}>
-            把公司、岗位和简历放在一起，先问清楚再投递
-          </h1>
-          <p className={styles.lead}>
-            输入目标公司、岗位方向和你的简历内容，系统可用于生成投递前问题、岗位匹配判断和面试准备重点。
-          </p>
-        </div>
-
         <AdvanceQaForm draft={draft} onSubmit={handleSubmit} onUpdate={updateDraft} />
       </section>
-    </JobPrepShell>
+    </SiteShell>
   );
 }

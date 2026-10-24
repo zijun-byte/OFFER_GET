@@ -123,13 +123,10 @@ export default function DesignerDocxTemplatePage() {
   return (
     <SiteShell active="resume" actionHref="/template-library" actionLabel="返回模板库">
       <main className={styles.stage}>
-        <section className={styles.intro}>
-          <span className={styles.eyebrow}>DOCX 原版模板 / 仅替换文字内容</span>
+        <header className={styles.intro}>
           <h1>设计师简历 044</h1>
-          <p>
-            这个模板会直接生成 Word 文件，不重绘为网页模板。系统只替换文字内容，尽量保持原 DOCX 的版式、字体、颜色和图形设计。
-          </p>
-        </section>
+          <p>填好内容后直接生成 Word 文件，原模板的版式、字体和配色保持不变。</p>
+        </header>
 
         <div className={styles.layout}>
           <form className={styles.form}>

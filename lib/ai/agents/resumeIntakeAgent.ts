@@ -7,7 +7,7 @@ import type {
 } from '../../../app/online-editor/resumePreviewData';
 import { runJsonAgent } from '../agentRuntime';
 
-export type GuidedStepId = 'targetRole' | 'basics' | 'education' | 'experience' | 'project' | 'skills';
+export type GuidedStepId = 'targetRole' | 'basics' | 'portfolio' | 'education' | 'experience' | 'project' | 'skills';
 
 type IntakePatch = {
   targetRole?: string;
@@ -41,6 +41,12 @@ export async function runResumeIntakeAgent({
   let nextQuestion = fallbackQuestion(nextStep, currentResumeData);
   let mode: 'ai' | 'local-fallback' = 'local-fallback';
 
+  // A URL is already structured input: no paid model call is necessary.
+  if (stepId === 'portfolio') {
+    const portfolio = isNegativeAnswer(answer) ? '' : answer.trim();
+    return { mode, nextQuestion, resumeData: portfolio ? { ...currentResumeData, basics: { ...currentResumeData.basics, portfolio } } : currentResumeData };
+  }
+
   // A negative answer is a valid answer to an optional step, never resume content.
   if (!isNegativeAnswer(answer)) {
     try {
@@ -54,7 +60,7 @@ export async function runResumeIntakeAgent({
       });
 
       patch = normalizeIntakePatch(stepId, result.output.patch || {}, answer);
-      nextQuestion = result.output.nextQuestion?.trim() || nextQuestion;
+      // Keep the next step contract stable, regardless of an older configured prompt.
       if (hasUsefulPatch(stepId, patch)) {
         mode = 'ai';
       } else {
@@ -290,10 +296,11 @@ function fallbackQuestion(nextStep: GuidedStepId | null, data: ResumeData) {
   const role = data.basics.targetRole ? `针对${data.basics.targetRole}，` : '';
   const prompts: Record<GuidedStepId, string> = {
     targetRole: '你这次准备投递什么岗位或方向？',
-    basics: '请告诉我你的姓名、所在城市、手机号和邮箱。没有的信息可以暂时不填。',
+    basics: '请告诉我你的姓名、所在城市、手机号和邮箱。作品集链接会在下一题单独填写。',
+    portfolio: '你有个人作品集链接吗？可以粘贴在这里，没有可以跳过。',
     education: '请补充学校、专业、学历、就读时间，以及值得写入简历的课程或成绩。',
     experience: `${role}请介绍一段或多段实习、工作或组织经历；每段说清公司、角色、时间和职责。`,
-    project: `${role}请介绍一个最能体现能力的项目、比赛、课程作业或社团活动；没有可以直接跳过。`,
+    project: `${role}请介绍一个最能体现能力的项目、比赛、课程作业或社团活动；没有可以回答“暂无”。`,
     skills: `${role}请列出你明确掌握的技能、工具、证书或语言能力。`,
   };
   return prompts[nextStep];

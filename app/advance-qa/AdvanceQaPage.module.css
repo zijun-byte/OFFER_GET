@@ -1,114 +1,74 @@
 .qaStage {
+  --accent: #7047e3;
   display: grid;
   align-content: center;
-  min-height: calc(100vh - 104px);
-  padding: 48px 0 90px;
-}
-
-.heroCopy {
-  max-width: 760px;
-  margin-bottom: 42px;
-}
-
-.eyebrow {
-  display: inline-flex;
-  align-items: center;
-  height: 34px;
-  padding: 0 14px;
-  border-radius: 999px;
-  background: var(--green-soft);
-  color: var(--green-dark);
-  font-size: 14px;
-  font-weight: 800;
-}
-
-.title {
-  max-width: 820px;
-  margin: 20px 0 16px;
-  font-size: clamp(40px, 5vw, 68px);
-  line-height: 1.08;
-}
-
-.lead {
-  margin: 0;
-  color: var(--muted);
-  font-size: 19px;
-  line-height: 1.8;
+  min-height: calc(100dvh - var(--header-h) - 80px);
+  width: min(100%, 1100px);
+  margin-inline: auto;
+  padding: 20px 0;
 }
 
 .formArea {
   display: contents;
 }
 
+.questionFrame,
+.questionViewport {
+  display: contents;
+}
+
+.stepArrow,
+.mobileAction,
+.stepProgress {
+  display: none;
+}
+
 .inputGrid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 22px;
+  gap: 20px;
   align-items: stretch;
 }
 
 .inputCard {
-  position: relative;
-  min-height: 318px;
+  display: flex;
+  flex-direction: column;
+  min-height: 260px;
   padding: 24px;
-  border: 1px solid rgba(52, 191, 111, 0.34);
-  border-radius: 8px;
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(252, 255, 253, 0.92)),
-    var(--white);
-  box-shadow:
-    0 24px 70px rgba(22, 128, 78, 0.12),
-    0 0 0 8px rgba(218, 252, 231, 0.42),
-    0 0 44px rgba(54, 224, 128, 0.2);
-  backdrop-filter: blur(18px);
-  transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: #fff;
+  transition: border-color 160ms ease, box-shadow 160ms ease;
 }
 
 .inputCard:focus-within {
-  transform: translateY(-4px);
-  border-color: rgba(24, 163, 95, 0.76);
-  box-shadow:
-    0 30px 84px rgba(22, 128, 78, 0.18),
-    0 0 0 10px rgba(207, 250, 224, 0.64),
-    0 0 58px rgba(44, 225, 126, 0.32);
-}
-
-.inputCard::before {
-  content: "";
-  position: absolute;
-  inset: 16px 18px auto auto;
-  width: 42px;
-  height: 42px;
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(24, 163, 95, 0.22), transparent 70%);
-  pointer-events: none;
+  border-color: var(--accent);
+  box-shadow: 0 8px 20px rgba(112, 71, 227, 0.1);
 }
 
 .fieldNumber {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 34px;
-  height: 34px;
-  margin-bottom: 18px;
+  width: 30px;
+  height: 30px;
+  margin-bottom: 14px;
   border-radius: 50%;
-  background: var(--green);
-  color: var(--white);
-  font-size: 14px;
+  background: #f1ecff;
+  color: var(--accent);
+  font-size: 13px;
   font-weight: 900;
-  box-shadow: 0 10px 22px rgba(24, 163, 95, 0.22);
 }
 
 .label {
   display: block;
-  margin-bottom: 10px;
-  font-size: 24px;
+  margin-bottom: 8px;
+  font-size: 20px;
   font-weight: 900;
 }
 
 .fieldTip {
-  min-height: 50px;
-  margin: 0 0 20px;
+  margin: 0 0 18px;
   color: var(--muted);
   font-size: 14px;
   line-height: 1.7;
@@ -120,55 +80,60 @@
   width: 100%;
   max-width: 100%;
   min-width: 0;
-  border: 1px solid #dbece2;
-  border-radius: 8px;
+  border: 1px solid #dbe5e0;
+  border-radius: 10px;
   outline: 0;
-  background: rgba(255, 255, 255, 0.94);
+  background: #fff;
   color: var(--ink);
   font: inherit;
-  font-weight: 700;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9);
   transition: border-color 160ms ease, box-shadow 160ms ease;
 }
 
 .textInput {
-  height: 56px;
+  height: 52px;
   padding: 0 16px;
 }
 
 .textArea {
-  min-height: 132px;
-  padding: 15px 16px;
+  flex: 1;
+  min-height: 160px;
+  padding: 14px 16px;
   resize: vertical;
   line-height: 1.7;
 }
 
 .textInput::placeholder,
 .textArea::placeholder {
-  color: #86aa92;
-  font-weight: 600;
+  color: #8a9a92;
 }
 
-.textInput:focus,
-.textArea:focus {
-  border-color: rgba(24, 163, 95, 0.72);
-  box-shadow:
-    0 0 0 4px rgba(224, 252, 235, 0.95),
-    0 0 26px rgba(59, 221, 130, 0.18);
+.textInput:focus-visible,
+.textArea:focus-visible {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(112, 71, 227, 0.18);
 }
 
 .actionRow {
   display: flex;
+  flex-wrap: wrap;
+  align-items: center;
   justify-content: flex-end;
-  margin-top: 28px;
+  gap: 12px 18px;
+  margin-top: 24px;
+}
+
+.actionRow button {
+  background: var(--accent);
+  box-shadow: none;
+  font-size: 15px;
+}
+
+.actionRow button:hover:not(:disabled) {
+  background: #5d38c4;
 }
 
 @media (max-width: 980px) {
-  .qaStage {
-    min-height: auto;
-    padding-top: 34px;
-  }
-
+  .qaStage { min-height: 0; align-content: start; }
   .inputGrid {
     grid-template-columns: 1fr;
   }
@@ -179,27 +144,234 @@
 }
 
 @media (max-width: 560px) {
-  .title {
-    font-size: 40px;
-  }
-
-  .lead {
-    font-size: 16px;
-  }
-
   .inputCard {
-    padding: 20px;
-  }
-
-  .label {
-    font-size: 21px;
-  }
-
-  .actionRow {
-    justify-content: stretch;
+    padding: 18px;
   }
 
   .actionRow button {
     width: 100%;
   }
+}
+
+/* ---------- validation ---------- */
+.optional {
+  margin-left: 8px;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 600;
+  vertical-align: middle;
+}
+
+.inputCardInvalid,
+.inputCardInvalid:focus-within {
+  border-color: var(--danger);
+  box-shadow: 0 0 0 3px var(--danger-soft);
+}
+
+.fieldError {
+  margin: 10px 0 0;
+  color: var(--danger);
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.5;
+}
+
+.actionHint {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+@media (max-width: 640px) {
+  .actionRow { justify-content: stretch; }
+  .actionRow button { width: 100%; }
+  .actionHint { width: 100%; }
+}
+
+/* A single, steady paper frame; the questions travel inside it. */
+@media (max-width: 760px) {
+  .qaStage {
+    min-height: calc(100svh - var(--header-h) - 98px - env(safe-area-inset-bottom, 0px));
+    align-content: center;
+    padding: 8px 0;
+  }
+
+  .formArea {
+    display: block;
+    min-width: 0;
+    width: min(100%, 460px);
+    margin-inline: auto;
+  }
+
+  .questionFrame {
+    position: relative;
+    display: block;
+    overflow: hidden;
+    border: 1px solid var(--line);
+    border-radius: 24px;
+    background: var(--paper);
+    box-shadow: var(--lift-2);
+  }
+
+  .questionViewport {
+    display: block;
+    overflow: hidden;
+  }
+
+  .inputGrid {
+    display: flex;
+    gap: 0;
+    transform: translate3d(calc(var(--qa-step, 0) * -100%), 0, 0);
+    transition: transform 520ms var(--ease-out);
+  }
+
+  .inputCard {
+    flex: 0 0 100%;
+    min-width: 0;
+    min-height: 348px;
+    padding: 24px 22px 18px;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+  }
+
+  .inputCard:focus-within,
+  .inputCardInvalid {
+    box-shadow: none;
+  }
+
+  .fieldNumber {
+    align-self: center;
+    width: 28px;
+    height: 28px;
+    margin-bottom: 12px;
+    font-family: var(--font-display);
+    font-size: 12px;
+  }
+
+  .label {
+    margin: 0 32px 12px;
+    font-size: 23px;
+    line-height: 1.4;
+    text-align: center;
+  }
+
+  .optional {
+    font-size: 11px;
+  }
+
+  .fieldTip {
+    min-height: 4.95em;
+    margin-bottom: 20px;
+    line-height: 1.65;
+  }
+
+  .textInput,
+  .textArea {
+    margin-top: auto;
+    border-radius: 14px;
+    background: var(--paper-tint);
+    font-size: 16px;
+  }
+
+  .textInput {
+    height: 56px;
+  }
+
+  .textArea {
+    flex: 0 0 auto;
+    height: 124px;
+    min-height: 124px;
+    resize: none;
+  }
+
+  .stepArrow {
+    position: absolute;
+    top: 58px;
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    background: var(--paper-tint);
+    color: var(--ink-soft);
+    cursor: pointer;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+    transition: background-color 180ms ease, color 180ms ease, transform 180ms var(--ease-out);
+  }
+
+  .stepArrowLeft { left: 14px; }
+  .stepArrowRight { right: 14px; }
+  .stepArrow svg { width: 20px; height: 20px; }
+
+  .stepArrow:active {
+    transform: scale(0.92);
+    background: var(--ai-soft);
+    color: var(--accent);
+  }
+
+  .mobileAction {
+    display: flex;
+    padding: 0 22px 22px;
+  }
+
+  .mobileAction button {
+    width: 100%;
+    min-height: 48px;
+    gap: 10px;
+    background: var(--accent);
+    box-shadow: 0 8px 18px -12px rgba(112, 71, 227, 0.6);
+  }
+
+  .mobileAction button:hover:not(:disabled) { background: #5d38c4; }
+  .mobileAction svg { width: 18px; height: 18px; }
+
+  .stepProgress {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    height: 52px;
+    margin-top: 6px;
+  }
+
+  .progressStep {
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    border: 0;
+    border-radius: 12px;
+    background: transparent;
+    cursor: pointer;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .progressStep span {
+    display: block;
+    width: 5px;
+    height: 12px;
+    border-radius: 999px;
+    background: #c5d4cb;
+    transition: height 420ms var(--ease-spring), background-color 260ms ease, box-shadow 260ms ease;
+  }
+
+  .progressStepActive span {
+    height: 28px;
+    background: var(--accent);
+    box-shadow: 0 3px 8px rgba(112, 71, 227, 0.18);
+  }
+
+  .stepArrow:focus-visible,
+  .progressStep:focus-visible,
+  .mobileAction button:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: -3px;
+  }
+
+  .actionRow { display: none; }
 }

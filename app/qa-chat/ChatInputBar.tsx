@@ -1,15 +1,16 @@
-import type { FormEvent } from 'react';
-import shellStyles from '../components/JobPrepShell.module.css';
+import type { FormEvent, RefObject } from 'react';
+import { shellStyles } from '../components/SiteShell';
 import styles from './QaChatPage.module.css';
 
 type ChatInputBarProps = {
   input: string;
+  inputRef: RefObject<HTMLInputElement | null>;
   isSending: boolean;
   onInputChange: (value: string) => void;
   onSubmit: (event: FormEvent<HTMLFormElement>) => void;
 };
 
-export default function ChatInputBar({ input, isSending, onInputChange, onSubmit }: ChatInputBarProps) {
+export default function ChatInputBar({ input, inputRef, isSending, onInputChange, onSubmit }: ChatInputBarProps) {
   return (
     <form className={styles.chatInputBar} onSubmit={onSubmit}>
       <input
@@ -17,13 +18,14 @@ export default function ChatInputBar({ input, isSending, onInputChange, onSubmit
         autoComplete="off"
         className={styles.chatInput}
         disabled={isSending}
-        placeholder="继续输入你的问题，比如：这段经历怎么改得更像运营岗？"
+        placeholder="比如：这段经历怎么讲更像运营岗？"
+        ref={inputRef}
         type="text"
         value={input}
         onChange={(event) => onInputChange(event.target.value)}
       />
       <button className={shellStyles.button} disabled={isSending || !input.trim()} type="submit">
-        {isSending ? '发送中…' : '发送问题'}
+        {isSending ? '发送中…' : '发送'}
       </button>
     </form>
   );

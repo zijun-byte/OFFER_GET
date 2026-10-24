@@ -1,7 +1,7 @@
 'use client';
 
-import { FormEvent, useEffect, useMemo, useState } from 'react';
-import JobPrepShell from '../components/JobPrepShell';
+import { FormEvent, useEffect, useMemo, useRef, useState } from 'react';
+import SiteShell from '../components/SiteShell';
 import ChatPanel from './ChatPanel';
 import { defaultMessages, type Draft, type Message } from './chatMessages';
 
@@ -12,12 +12,21 @@ export default function QaChatPage() {
   const [input, setInput] = useState('');
   const [messages, setMessages] = useState<Message[]>(defaultMessages);
   const [isSending, setIsSending] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const threadEndRef = useRef<HTMLDivElement>(null);
+  const [sentCount, setSentCount] = useState(0);
+
+  useEffect(() => {
+    if (sentCount === 0) return;
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    threadEndRef.current?.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'end' });
+  }, [sentCount]);
 
   useEffect(() => {
     try {
       const savedDraft = JSON.parse(localStorage.getItem(QA_STORAGE_KEY) || 'null') as Draft | null;
       setDraft(savedDraft);
-      if (savedDraft?.resume) {
+      if (savedDraft?.company || savedDraft?.role) {
         setMessages((currentMessages) =>
           currentMessages.map((message) =>
             message.id === 'ai-intro'
@@ -49,20 +58,19 @@ export default function QaChatPage() {
     if (!text || isSending) return;
 
     const history = messages
-      .filter((message) => !defaultMessages.some((defaultMessage) => defaultMessage.id === message.id))
+      .filter((message) => !message.example && !message.notice)
       .slice(-12)
       .map(({ role, content }) => ({ role, content }));
+    const userMessage: Message = {
+      id: `user-${Date.now()}`,
+      role: 'user',
+      content: text,
+    };
 
-    setMessages((currentMessages) => [
-      ...currentMessages,
-      {
-        id: `user-${Date.now()}`,
-        role: 'user',
-        content: text,
-      },
-    ]);
+    setMessages((currentMessages) => [...currentMessages.filter((message) => !message.notice), userMessage]);
     setInput('');
     setIsSending(true);
+    setSentCount((count) => count + 1);
 
     try {
       const response = await fetch('/api/qa-chat', {
@@ -70,11 +78,19 @@ export default function QaChatPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ draft: draft || {}, history, message: text }),
       });
-      const payload = (await response.json().catch(() => null)) as { error?: string; reply?: string; suggestions?: string[] } | null;
-      if (!response.ok || !payload?.reply) throw new Error(payload?.error || 'AI 回复暂时不可用，请稍后再试。');
+      const payload = (await response.json().catch(() => null)) as {
+        error?: string;
+        reply?: string;
+        suggestions?: string[];
+      } | null;
+
+      if (!response.ok || !payload?.reply) {
+        throw new Error(payload?.error || 'AI 回复暂时不可用，请稍后再试。');
+      }
+
       const reply = payload.reply;
       const suggestions = Array.isArray(payload.suggestions)
-        ? payload.suggestions.filter((item): item is string => typeof item === 'string' && Boolean(item.trim()))
+        ? payload.suggestions.filter((suggestion): suggestion is string => typeof suggestion === 'string' && Boolean(suggestion.trim()))
         : [];
       setMessages((currentMessages) => [
         ...currentMessages,
@@ -82,34 +98,45 @@ export default function QaChatPage() {
           id: `ai-${Date.now()}`,
           role: 'ai',
           content: reply,
-          quickCard: suggestions.length ? { title: '你还可以继续问', items: suggestions.slice(0, 3), suggestions: true } : undefined,
+          quickCard: suggestions.length
+            ? { title: '你还可以继续问', items: suggestions.slice(0, 3), suggestions: true }
+            : undefined,
         },
       ]);
     } catch (error) {
       setMessages((currentMessages) => [
         ...currentMessages,
-        { id: `ai-error-${Date.now()}`, role: 'ai', content: error instanceof Error ? error.message : 'AI 回复暂时不可用，请稍后再试。' },
+        {
+          id: `notice-${Date.now()}`,
+          role: 'ai',
+          notice: true,
+          content: error instanceof Error ? error.message : 'AI 回复暂时不可用，请稍后再试。',
+        },
       ]);
     } finally {
       setIsSending(false);
+      setSentCount((count) => count + 1);
     }
   }
 
   function handlePickSuggestion(text: string) {
     setInput(text);
+    inputRef.current?.focus();
   }
 
   return (
-    <JobPrepShell active="qa" actionHref="/advance-qa" actionLabel="返回填写">
+    <SiteShell active="qa" actionHref="/advance-qa" actionLabel="返回填写">
       <ChatPanel
         input={input}
+        inputRef={inputRef}
         isSending={isSending}
         jobTitle={jobTitle}
         messages={messages}
         onInputChange={setInput}
         onPickSuggestion={handlePickSuggestion}
         onSubmit={handleSubmit}
+        threadEndRef={threadEndRef}
       />
-    </JobPrepShell>
+    </SiteShell>
   );
 }

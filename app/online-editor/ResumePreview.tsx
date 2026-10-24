@@ -1,4 +1,5 @@
 import styles from './OnlineEditorPage.module.css';
+import { useEffect, useRef, useState } from 'react';
 import type { ResumeData, ResumeEditorSection, ResumeExperience, ResumeVisibleSections } from './resumePreviewData';
 import ResumeSection from './ResumeSection';
 
@@ -96,6 +97,26 @@ export default function ResumePreview({
   resumeData,
   visibleSections,
 }: ResumePreviewProps) {
+  const paperRef = useRef<HTMLElement>(null);
+  const viewportRef = useRef<HTMLDivElement>(null);
+  const [pageCount, setPageCount] = useState(1);
+  const [currentPage, setCurrentPage] = useState(0);
+  useEffect(() => {
+    const paper = paperRef.current;
+    const viewport = viewportRef.current;
+    if (!paper || !viewport) return;
+    const observer = new ResizeObserver(() => {
+      const height = paper.clientWidth * 297 / 210;
+      viewport.style.height = `${height}px`;
+      const count = Math.max(1, Math.ceil((paper.scrollHeight - 2) / height));
+      setPageCount(count);
+      setCurrentPage((page) => Math.min(page, count - 1));
+    });
+    observer.observe(paper);
+    return () => {
+      observer.disconnect();
+    };
+  }, [resumeData, selectedTemplate, visibleSections]);
   const { basics } = resumeData;
   const visibleExperiences = visibleSections.experiences ? resumeData.experiences.filter(hasExperienceContent) : [];
   const visibleProjects = visibleSections.projects ? resumeData.projects.filter(hasExperienceContent) : [];
@@ -105,9 +126,8 @@ export default function ResumePreview({
     return (
       <section className={styles.previewPlaceholder} aria-label="简历预览占位">
         <div className={styles.placeholderPaper}>
-          <span>简历预览</span>
-          <h2>填写信息后会在这里生成预览</h2>
-          <p>左侧完成逐步问答或粘贴旧简历后，系统会把内容写入结构化简历，并在右侧实时展示。</p>
+          <h2>这里会出现你的简历</h2>
+          <p>在左侧回答问题或粘贴旧简历，内容会自动排进这张纸。</p>
         </div>
       </section>
     );
@@ -115,7 +135,9 @@ export default function ResumePreview({
 
   return (
     <section className={styles.resumeShell} aria-label="简历预览" onClick={() => onSelectSection(null)}>
+      <div className={styles.paperViewport} ref={viewportRef} onScroll={(event) => setCurrentPage(Math.min(pageCount - 1, Math.floor(event.currentTarget.scrollTop / Math.max(1, (paperRef.current?.clientWidth || event.currentTarget.clientWidth) * 297 / 210))))}>
       <article
+        ref={paperRef}
         className={`${styles.resumePaper} ${templateClasses[selectedTemplate] || ''}`}
       >
         <aside className={styles.resumeSidebar}>
@@ -160,7 +182,7 @@ export default function ResumePreview({
               <p className={styles.resumeRole}>{basics.targetRole}</p>
               <p className={styles.resumeContact}>{formatContact(resumeData)}</p>
             </div>
-            {basics.summary && <div className={styles.summaryBox}>{basics.summary}</div>}
+            {basics.summary.trim() && basics.summary.trim() !== basics.targetRole.trim() && <div className={styles.summaryBox}>{basics.summary}</div>}
           </header>
 
           {resumeData.education.length > 0 && (
@@ -235,6 +257,10 @@ export default function ResumePreview({
           )}
         </div>
       </article>
+      </div>
+      <nav className={styles.pageDots} aria-label="简历分页">
+        {Array.from({ length: pageCount }, (_, page) => <button type="button" key={page} aria-label={`第 ${page + 1} 页`} aria-current={currentPage === page ? 'page' : undefined} onClick={() => viewportRef.current?.scrollTo({ top: page * (paperRef.current?.clientWidth || viewportRef.current.clientWidth) * 297 / 210, behavior: 'smooth' })} />)}
+      </nav>
     </section>
   );
 }
