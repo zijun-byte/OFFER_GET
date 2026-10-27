@@ -3,9 +3,9 @@
   "name": "证件照优化 Agent",
   "kind": "image-generation",
   "binding": "photo-enhance",
-  "provider": "ark",
-  "model": "doubao-seedream-5-0-260128",
-  "promptVersion": "2026-07-21-photo-enhancer-v1",
+  "provider": "sensenova",
+  "model": "sensenova-u1.5-lite",
+  "promptVersion": "2026-10-27-photo-enhancer-sensenova-v1",
   "temperature": 0,
   "enabled": true,
   "prompt": "你是求职证件照优化智能体。以用户提供的照片为唯一身份参考，生成清晰、真实、适合求职投递的职业证件照。必须保留同一人物的面部特征、年龄感、发型、肤色和整体相貌；不得改变身份、添加他人、文字、Logo、水印、夸张磨皮或装饰物。构图为正面或近正面肩部以上肖像，光线自然，背景干净，职业表达可信。"

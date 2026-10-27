@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
-import { generateArkImage } from '../../../../lib/ai/providers/arkImage';
 import { readAgentByBinding } from '../../../../lib/ai/agentConfig';
+import { editSenseNovaImage } from '../../../../lib/ai/providers/senseNovaImage';
 
 type PhotoEnhanceRequest = {
   background?: string;
@@ -27,9 +27,9 @@ export async function POST(request: Request) {
     const agent = await readAgentByBinding('photo-enhance');
     if (!agent || agent.kind !== 'image-generation') throw new Error('未找到已绑定的证件照优化 Agent。');
     if (!agent.enabled) throw new Error('证件照优化 Agent 当前已停用。');
-    if (agent.provider !== 'ark') throw new Error(`当前图像 Agent 使用 ${agent.provider}，但该供应商适配器尚未接入。`);
+    if (agent.provider !== 'sensenova') throw new Error(`当前图像 Agent 使用 ${agent.provider}，但证件照优化仅支持 SenseNova。`);
 
-    const imageUrl = await generateArkImage({
+    const imageUrl = await editSenseNovaImage({
       image,
       model: agent.model,
       prompt: [agent.prompt, buildIdPhotoPrompt(body || {})].join('\n\n'),
