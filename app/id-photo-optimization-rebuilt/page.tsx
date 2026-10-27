@@ -1,7 +1,7 @@
 'use client';
 
 import SiteShell from '../components/SiteShell';
-import { ChangeEvent, useEffect, useMemo, useState } from 'react';
+import { ChangeEvent, useEffect, useMemo, useRef, useState } from 'react';
 import styles from './IdPhotoPage.module.css';
 import IdPhotoPreview from './IdPhotoPreview';
 import {
@@ -100,6 +100,7 @@ export default function IdPhotoOptimizationPage() {
   const [selectedBackground, setSelectedBackground] = useState<BackgroundKey>('blue');
   const [selectedModernStyle, setSelectedModernStyle] = useState<ModernStyleKey>('style1');
   const [selectedSize, setSelectedSize] = useState<SizeKey>('resume');
+  const lastStandardSize = useRef<SizeKey>('resume');
   const [customPrompt, setCustomPrompt] = useState('');
   const [fileName, setFileName] = useState('未选择文件');
   const [previewUrl, setPreviewUrl] = useState('');
@@ -233,8 +234,13 @@ export default function IdPhotoOptimizationPage() {
             selectedStyle={selectedStyle}
             selectedFormLabel={selectedStyle === 'traditional' ? backgroundOptions[selectedBackground].label : selectedStyle === 'modern' ? modernStyleOptions[selectedModernStyle].label : '自定义描述'}
             onSelectStyle={(style) => {
+              if (style === 'custom' && selectedStyle !== 'custom') {
+                lastStandardSize.current = selectedSize;
+                handleSelectSize('resume');
+              } else if (selectedStyle === 'custom' && style !== 'custom') {
+                handleSelectSize(lastStandardSize.current);
+              }
               setSelectedStyle(style);
-              if (style === 'custom') handleSelectSize('resume');
             }}
             onPhotoChange={handlePhotoChange}
           />
