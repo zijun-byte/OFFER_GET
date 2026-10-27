@@ -37,7 +37,7 @@ export default function TemplateLibraryPage() {
   }
 
   return (
-    <SiteShell active="resume" actionHref="/">
+    <SiteShell active="resume">
       <div className={styles.libraryStage}>
         <div className={styles.toolbar}>
           <div className={styles.filters} role="group" aria-label="按风格筛选模板">

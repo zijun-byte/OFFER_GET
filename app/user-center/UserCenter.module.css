@@ -1,0 +1,17 @@
+.center { width: min(680px, 100%); margin: 36px auto; }
+.heading { display: flex; align-items: center; gap: 20px; }
+.avatar { display: grid; width: 68px; height: 68px; flex: none; place-items: center; border-radius: 50%; background: var(--green-soft); color: var(--green-dark); }
+.avatar svg { width: 34px; height: 34px; }
+.eyebrow { margin: 0 0 5px; color: var(--green-dark); font-size: 12px; font-weight: 800; }
+.heading h1 { margin: 0; color: var(--ink); font-size: clamp(26px, 5vw, 34px); }
+.heading p:last-child { margin: 6px 0 0; color: var(--ink-soft); font-size: 14px; }
+.notice { margin: 28px 0 16px; padding: 16px 18px; border: 1px solid var(--line); border-radius: 16px; background: var(--green-soft); color: var(--ink-soft); font-size: 13px; line-height: 1.6; }
+.links { display: grid; gap: 10px; }
+.link { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 20px; border: 1px solid var(--line); border-radius: 17px; background: #fff; color: var(--ink); text-decoration: none; transition: border-color 160ms ease, transform 160ms ease; }
+.link:hover { border-color: var(--green); transform: translateY(-2px); }
+.link:focus-visible { outline: 3px solid var(--green); outline-offset: 2px; }
+.link strong, .link small { display: block; }
+.link strong { font-size: 16px; }
+.link small { margin-top: 5px; color: var(--ink-soft); font-size: 12px; }
+.link > span:last-child { color: var(--green-dark); font-size: 21px; }
+@media (max-width: 760px) { .center { margin: 16px auto; } .notice { margin-top: 24px; } }

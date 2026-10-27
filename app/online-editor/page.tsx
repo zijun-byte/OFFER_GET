@@ -319,7 +319,7 @@ export default function OnlineEditorPage() {
   </>;
 
   return (
-    <SiteShell active="resume" wide actionHref="/template-library" actionLabel="返回模板库">
+    <SiteShell active="resume" wide>
       <div className={styles.editorToolbar}>
         {workflowPhase !== 'intake' && (
           <div className={styles.toolbarTitle}>

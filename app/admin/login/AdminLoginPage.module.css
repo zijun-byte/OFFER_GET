@@ -3,27 +3,32 @@
   min-height: 100vh;
   place-items: center;
   padding: 24px;
-  background: #f4fbf7;
-  color: #173225;
-  font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
+  background: radial-gradient(ellipse at 85% 10%, #d4f25c24, transparent 45%), var(--mist);
+  color: var(--ink);
+  font-family: inherit;
 }
 .form {
   display: grid;
-  width: min(100%, 400px);
+  width: min(100%, 440px);
   gap: 16px;
-  padding: 32px;
-  border: 1px solid #cfe8da;
-  border-radius: 8px;
-  background: #ffffff;
-  box-shadow: 0 24px 64px rgba(21, 102, 62, 0.12);
+  padding: 40px;
+  border: 1px solid var(--line);
+  border-radius: 22px;
+  background: var(--paper);
+  box-shadow: 0 16px 48px #0f2a2008;
 }
-.eyebrow { color: #0f7444; font-size: 12px; font-weight: 900; letter-spacing: 0.08em; }
+.eyebrow { justify-self: start; padding: 6px 10px; border-radius: 8px; background: var(--marker); color: var(--marker-ink); font-size: 12px; font-weight: 900; letter-spacing: 0.08em; }
 .form h1 { margin: 0; font-size: 28px; }
 .form > p { margin: -6px 0 6px; color: #617166; font-size: 14px; line-height: 1.7; }
 .form label { display: grid; gap: 8px; color: #24563d; font-size: 13px; font-weight: 800; }
 .form input { min-height: 46px; padding: 0 12px; border: 1px solid #cfe3d7; border-radius: 8px; outline: 0; color: #173225; font: inherit; font-size: 16px; }
 .form input:focus { border-color: #18a35f; box-shadow: 0 0 0 4px #eaf8f0; }
-.form button { min-height: 48px; border: 0; border-radius: 999px; background: #18a35f; color: #ffffff; font: inherit; font-weight: 900; cursor: pointer; }
+.form button { min-height: 48px; border: 0; border-radius: 999px; background: var(--green); color: #ffffff; font: inherit; font-weight: 900; cursor: pointer; }
+.form button:hover:not(:disabled) { background: var(--green-dark); }
+.form input { border-color: var(--line); border-radius: 14px; background: var(--paper-tint); color: var(--ink); }
+.form :is(button, a):focus-visible { outline: 3px solid var(--green); outline-offset: 3px; }
+.returnLink { color: var(--muted); text-align: center; font-size: 12px; text-decoration: none; padding: 8px; }
+.returnLink:hover { color: var(--green-dark); }
 .form button:disabled { cursor: wait; opacity: 0.7; }
 .form .error { margin: 0; color: #a13a3a; font-size: 13px; font-weight: 700; }
 @media (max-width: 480px) {

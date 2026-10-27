@@ -125,7 +125,7 @@ export default function QaChatPage() {
   }
 
   return (
-    <SiteShell active="qa" actionHref="/advance-qa" actionLabel="返回填写">
+    <SiteShell active="qa">
       <ChatPanel
         input={input}
         inputRef={inputRef}

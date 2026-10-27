@@ -121,7 +121,7 @@ export default function DesignerDocxTemplatePage() {
   }
 
   return (
-    <SiteShell active="resume" actionHref="/template-library" actionLabel="返回模板库">
+    <SiteShell active="resume">
       <main className={styles.stage}>
         <header className={styles.intro}>
           <h1>设计师简历 044</h1>

@@ -1,21 +1,17 @@
 .root {
-  --admin-bg: #f5f7f6;
+  --admin-bg: var(--mist, #eef3ef);
   --panel: #ffffff;
-  --ink: #17251d;
-  --muted: #66746b;
-  --line: #dce6df;
-  --soft: #edf7f1;
-  --green: #12824c;
+  --soft: var(--green-soft, #e3f4ea);
   --green-strong: #0e5f39;
   min-height: 100vh;
   background: var(--admin-bg);
   color: var(--ink);
-  font-family: "Microsoft YaHei", "PingFang SC", Arial, sans-serif;
+  font-family: inherit;
 }
 
 .layout {
   display: grid;
-  grid-template-columns: 260px minmax(0, 1fr);
+  grid-template-columns: 208px minmax(0, 1fr);
   min-height: 100vh;
 }
 
@@ -462,6 +458,51 @@
 
 .traceItem strong { color: var(--ink); }
 .emptyLog { margin: 0; padding: 18px; color: var(--muted); text-align: center; }
+
+/* Share the product's mint-paper visual language without changing admin behavior. */
+.sidebar { display: flex; flex-direction: column; padding: 26px 16px; background: var(--paper-tint, #f7faf8); }
+.brand { padding: 0 8px 32px; }
+.brand strong { font-family: var(--font-display, inherit); font-size: 25px; letter-spacing: -1px; }
+.brand em { color: var(--green); font-style: normal; }
+.brand span { font-size: 10px; letter-spacing: 1px; margin-top: 10px; }
+.nav { gap: 9px; }
+.navButton { position: relative; min-height: 44px; border-radius: 14px; color: var(--ink-soft); transition: background 180ms ease, color 180ms ease; }
+.navButton:hover { background: var(--soft); }
+.navButtonActive { background: var(--paper); color: var(--ink); box-shadow: 0 3px 12px #0f2a2008; }
+.navButtonActive::before { content: ''; position: absolute; left: 5px; top: 13px; width: 3px; height: 18px; border-radius: 3px; background: var(--green); }
+.navButtonActive::after { content: ''; position: absolute; right: 13px; top: 18px; width: 8px; height: 8px; border-radius: 50%; background: var(--marker, #d4f25c); }
+.returnLink { margin-top: auto; padding: 22px 8px 4px; color: var(--muted); font-size: 12px; text-decoration: none; }
+.returnLink:hover { color: var(--green-dark); }
+.main { padding: 0; }
+.topbar { position: sticky; top: 0; z-index: 5; align-items: center; margin: 0; padding: 20px 32px; border-bottom: 1px solid var(--line); background: var(--paper); }
+.topbar h1 { font-size: 22px; }
+.topbar p { margin-top: 6px; max-width: 660px; font-size: 12px; }
+.statusPill { background: var(--soft); border: 0; color: var(--green-dark); }
+.content { max-width: 1440px; margin: 0 auto; padding: 28px 32px 40px; gap: 22px; }
+.statCard, .panel, .placeholderCard { border-radius: 22px; box-shadow: 0 4px 18px #0f2a2004; }
+.statCard { position: relative; padding: 24px; }
+.statCard:first-child { background: var(--marker, #d4f25c); border-color: transparent; }
+.statCard strong { font-family: var(--font-display, inherit); font-size: 38px; font-weight: 700; }
+.statCard span { font-size: 12px; font-weight: 600; }
+.panel { padding: 26px; }
+.panelHeader h2 { font-size: 19px; }
+.panelHeader p { font-size: 13px; }
+.endpointCard, .agentCard, .compiledAgent, .logItem { border-radius: 14px; background: var(--paper-tint, #f7faf8); box-shadow: none; }
+.agentTop, .endpointTop { flex-wrap: wrap; }
+.agentName { font-size: 14px; }
+.agentMeta { font-weight: 500; overflow-wrap: anywhere; }
+.endpointPath { margin-top: 9px; font-family: Consolas, monospace; font-size: 13px; }
+.tag { font-size: 10px; font-weight: 700; }
+.method { background: var(--ink); font-size: 10px; }
+.debugTextarea, .compilerField textarea, .resultBox { border-radius: 14px; }
+.resultBox { margin: 0; background: var(--ink); }
+.primaryButton { background: var(--green); transition: background 180ms ease; }
+.primaryButton:hover:not(:disabled) { background: var(--green-dark); }
+.ghostButton:hover { background: var(--soft); }
+.root :is(button, a, textarea, summary):focus-visible { outline: 3px solid var(--green); outline-offset: 3px; }
+.traceItem { grid-template-columns: repeat(4, minmax(0, 1fr)); overflow-wrap: anywhere; }
+.placeholderGrid { grid-template-columns: 1fr; }
+.placeholderCard { padding: 32px; }
 @media (max-width: 1100px) {
   .layout {
     grid-template-columns: 1fr;
@@ -471,6 +512,12 @@
     position: static;
     height: auto;
   }
+  .sidebar { padding: 16px 24px; border-bottom: 1px solid var(--line); }
+  .brand { padding-bottom: 16px; }
+  .nav { display: flex; flex-wrap: wrap; }
+  .navButton { width: auto; padding: 0 24px; }
+  .returnLink { padding-top: 14px; }
+  .compilerLayout { grid-template-columns: 1fr; }
 
   .nav,
   .statsGrid,
@@ -482,8 +529,12 @@
 
 @media (max-width: 760px) {
   .main {
-    padding: 20px;
+    padding: 0;
   }
+  .topbar { position: static; padding: 20px; align-items: flex-start; gap: 14px; }
+  .content { padding: 20px; }
+  .panel { padding: 20px; }
+  .traceItem { grid-template-columns: 1fr; }
 
   .topbar,
   .panelHeader,

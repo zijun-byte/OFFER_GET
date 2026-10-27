@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
+import Link from 'next/link';
 import AgentPromptPanel from './api/AgentPromptPanel';
 import RunLogsPanel from './RunLogsPanel';
 import WorkflowCompilerPanel from './WorkflowCompilerPanel';
@@ -167,8 +168,8 @@ export default function AdminWorkbench() {
       <div className={styles.layout}>
         <aside className={styles.sidebar}>
           <div className={styles.brand}>
-            <strong>Offer_GET Admin</strong>
-            <span>后台 + 智能体工作台</span>
+            <strong>Offer <em>GET</em></strong>
+            <span>管理工作台 / ADMIN</span>
           </div>
           <nav className={styles.nav} aria-label="后台导航">
             {tabs.map((tab) => (
@@ -177,11 +178,13 @@ export default function AdminWorkbench() {
                 key={tab.key}
                 onClick={() => setActiveTab(tab.key)}
                 type="button"
+                aria-current={activeTab === tab.key ? 'page' : undefined}
               >
                 {tab.label}
               </button>
             ))}
           </nav>
+          <Link className={styles.returnLink} href="/">← 返回产品首页</Link>
         </aside>
 
         <section className={styles.main}>
@@ -190,10 +193,10 @@ export default function AdminWorkbench() {
               <h1>{pageCopy.title}</h1>
               <p>{pageCopy.description}</p>
             </div>
-            <span className={styles.statusPill}>内部后台 · 不挂前台入口</span>
+            <span className={styles.statusPill}>管理员工作区</span>
           </header>
 
-          <div className={styles.content}>{renderTab(activeTab, debugInput, setDebugInput, debugResult, runDebug, isDebugging)}</div>
+          <div className={styles.content} key={activeTab}>{renderTab(activeTab, debugInput, setDebugInput, debugResult, runDebug, isDebugging)}</div>
         </section>
       </div>
     </main>
@@ -326,7 +329,7 @@ function DebugPanel({
       </div>
       <div className={styles.debugGrid}>
         <div>
-          <textarea className={styles.debugTextarea} onChange={(event) => setDebugInput(event.target.value)} value={debugInput} />
+          <textarea aria-label="调试简历 JSON" className={styles.debugTextarea} onChange={(event) => setDebugInput(event.target.value)} value={debugInput} />
           <div className={styles.debugActions}>
             <button className={styles.primaryButton} disabled={isDebugging} onClick={runDebug} type="button">
               {isDebugging ? '运行中' : '运行润色编队'}

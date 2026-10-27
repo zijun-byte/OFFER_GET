@@ -14,6 +14,7 @@ import {
   type StyleKey,
 } from './idPhotoContent';
 import PhotoUploadPanel from './PhotoUploadPanel';
+import GlassDropdown from './GlassDropdown';
 
 const MAX_PHOTO_BYTES = 8 * 1024 * 1024;
 
@@ -229,26 +230,18 @@ export default function IdPhotoOptimizationPage() {
           <PhotoUploadPanel
             fileName={fileName}
             previewImageUrl={previewImageUrl}
+            selectedStyle={selectedStyle}
+            selectedFormLabel={selectedStyle === 'traditional' ? backgroundOptions[selectedBackground].label : selectedStyle === 'modern' ? modernStyleOptions[selectedModernStyle].label : '自定义描述'}
+            onSelectStyle={(style) => {
+              setSelectedStyle(style);
+              if (style === 'custom') handleSelectSize('resume');
+            }}
             onPhotoChange={handlePhotoChange}
           />
           <div className={styles.settingsCard}>
             <h2>生成设置</h2>
-            <fieldset className={styles.choiceField}>
-              <legend>生成模式</legend>
-              <div className={styles.segmented}>
-                {modeOptions.map((option) => (
-                  <button
-                    aria-pressed={selectedStyle === option.key}
-                    key={option.key}
-                    onClick={() => setSelectedStyle(option.key)}
-                    type="button"
-                  >
-                    {option.label}
-                  </button>
-                ))}
-              </div>
-            </fieldset>
-            <fieldset className={styles.choiceField}>
+            <div className={styles.desktopModeSelector}><GlassDropdown label="生成模式" value={selectedStyle} options={modeOptions.map((option) => ({ value: option.key, label: option.label }))} onChange={setSelectedStyle} /></div>
+            <fieldset className={`${styles.choiceField} ${styles.desktopSizeSelector}`}>
               <legend>照片规格</legend>
               <div className={styles.sizeChips}>
                 {(Object.keys(sizeOptions) as SizeKey[]).map((key) => (
@@ -264,6 +257,13 @@ export default function IdPhotoOptimizationPage() {
                 ))}
               </div>
             </fieldset>
+            {selectedStyle !== 'custom' ? <div className={styles.mobileSettingsGrid}>
+              <div className={styles.mobileSetting}><span>尺寸</span><GlassDropdown label="照片尺寸" value={selectedSize} options={(Object.keys(sizeOptions) as SizeKey[]).map((key) => ({ value: key, label: sizeOptions[key].label }))} onChange={handleSelectSize} openUp /></div>
+              <div className={styles.mobileSetting}><span>形式</span>
+                {selectedStyle === 'traditional' ? <GlassDropdown label="背景颜色" value={selectedBackground} options={(Object.keys(backgroundOptions) as BackgroundKey[]).map((key) => ({ value: key, label: backgroundOptions[key].label }))} onChange={setSelectedBackground} openUp /> : null}
+                {selectedStyle === 'modern' ? <GlassDropdown label="新式照片样式" value={selectedModernStyle} options={(Object.keys(modernStyleOptions) as ModernStyleKey[]).map((key) => ({ value: key, label: modernStyleOptions[key].label }))} onChange={setSelectedModernStyle} openUp /> : null}
+              </div>
+            </div> : null}
         <IdPhotoPreview
           fileName={fileName}
           freeCropArea={freeCropArea}

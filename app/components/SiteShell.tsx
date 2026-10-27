@@ -81,14 +81,10 @@ export function Particles() {
 
 export default function SiteShell({
   active,
-  actionHref = '/',
-  actionLabel = '返回上一级',
   wide = false,
   children,
 }: {
   active?: NavKey;
-  actionHref?: string;
-  actionLabel?: string;
   wide?: boolean;
   children: React.ReactNode;
 }) {
@@ -138,11 +134,11 @@ export default function SiteShell({
               {navItems.find((item) => item.key === active)?.label || '求职工作台'}
             </span>
           </Link>
-          <Link className={shellStyles.backLink} href={actionHref}>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-              <path d="M15 6l-6 6 6 6" />
+          <Link className={shellStyles.accountLink} href="/user-center" aria-label="打开用户中心" title="用户中心">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <circle cx="12" cy="8" r="3.2" />
+              <path d="M5.5 19c.5-3.4 2.7-5.2 6.5-5.2s6 1.8 6.5 5.2" />
             </svg>
-            {actionLabel}
           </Link>
         </header>
         {children}

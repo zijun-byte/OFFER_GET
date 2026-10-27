@@ -1,6 +1,7 @@
 'use client';
 
 import { FormEvent, useState } from 'react';
+import Link from 'next/link';
 import styles from './AdminLoginPage.module.css';
 
 export default function AdminLoginPage() {
@@ -51,6 +52,7 @@ export default function AdminLoginPage() {
         <button disabled={isSubmitting} type="submit">
           {isSubmitting ? '正在验证...' : '进入后台'}
         </button>
+        <Link className={styles.returnLink} href="/">← 返回产品首页</Link>
       </form>
     </main>
   );

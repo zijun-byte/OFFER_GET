@@ -17,6 +17,11 @@
     linear-gradient(180deg, rgba(238, 243, 239, 0.2), rgba(238, 243, 239, 0.75) 78%);
 }
 
+.accountLink { position: absolute; z-index: 5; top: 20px; right: 24px; display: grid; width: 42px; height: 42px; place-items: center; border: 1px solid var(--line); border-radius: 50%; background: rgba(255,255,255,.9); color: var(--green-dark); text-decoration: none; }
+.accountLink svg { width: 22px; height: 22px; }
+.accountLink:hover { background: var(--green-soft); border-color: var(--green); }
+.accountLink:focus-visible { outline: 3px solid var(--green); outline-offset: 3px; }
+
 .content {
   position: relative;
   z-index: 2;

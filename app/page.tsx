@@ -23,8 +23,8 @@ const entries = [
   },
   {
     key: 'fortune',
-    label: '运势占卜',
-    copy: '投递前抽一张牌，换个心情，顺便拿一条小建议。',
+    label: '求职摇签',
+    copy: '摇动签筒，抽一支求职签，带走一条今日行动建议。',
     href: '/tarot-fortune',
   },
 ] as const;
@@ -67,10 +67,10 @@ function EntryArt({ name }: { name: (typeof entries)[number]['key'] }) {
   }
   return (
     <svg viewBox="0 0 80 64" aria-hidden="true">
-      <rect x="10" y="12" width="26" height="40" rx="5" fill="#0f2a20" transform="rotate(-10 23 32)" />
-      <rect x="44" y="12" width="26" height="40" rx="5" fill="#0f2a20" transform="rotate(10 57 32)" />
-      <rect x="27" y="6" width="26" height="42" rx="5" fill="#fff" stroke="#c4d6cb" strokeWidth="2" />
-      <path d="M40 15l2.6 7.4L50 25l-7.4 2.6L40 35l-2.6-7.4L30 25l7.4-2.6z" fill="#d4f25c" stroke="#10a866" strokeWidth="1.6" strokeLinejoin="round" />
+      <path d="M26 11V44M33 7v37M40 12v32M47 6v38M54 10v34" stroke="#c69a5c" strokeWidth="3" strokeLinecap="round" />
+      <path d="M22 35h36l-4 24H26z" fill="#8b4b2e" />
+      <ellipse cx="40" cy="35" rx="18" ry="4" fill="#aa6942" />
+      <path d="M24 35c10 4 22 4 32 0" fill="none" stroke="#d2a263" strokeWidth="2" />
     </svg>
   );
 }
@@ -80,6 +80,7 @@ export default function Home() {
     <main className={styles.home} aria-labelledby="page-title">
       <BlobCursor />
       <div className={styles.overlay} aria-hidden="true" />
+      <Link href="/user-center" className={styles.accountLink} aria-label="打开用户中心" title="用户中心"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="3.2" /><path d="M5.5 19c.5-3.4 2.7-5.2 6.5-5.2s6 1.8 6.5 5.2" /></svg></Link>
 
       <section className={styles.content}>
         <h1 className={styles.title} id="page-title" aria-label="Offer GET">

@@ -1,0 +1,10 @@
+.mascot { width: 190px; height: 235px; overflow: visible; filter: drop-shadow(0 12px 18px rgba(85,150,220,.12)); }
+@media (max-width: 760px) { .mascot { width: clamp(100px, 29vw, 150px); height: auto; max-height: 185px; } }
+.gaze { animation: lookAround 5.4s cubic-bezier(.45,0,.2,1) infinite; }
+@keyframes lookAround {
+  0%, 10%, 85%, 100% { transform: translate(0,0); }
+  24%, 38% { transform: translate(-14px,13px); }
+  54%, 68% { transform: translate(14px,13px); }
+}
+@media (max-height: 700px) and (min-width: 981px) { .mascot { width: 160px; height: 198px; } }
+@media (prefers-reduced-motion: reduce) { .gaze { animation: none; } }

@@ -1,5 +1,6 @@
 import { type CSSProperties, type PointerEvent, useRef, useState } from 'react';
 import styles from './IdPhotoPage.module.css';
+import GlassDropdown from './GlassDropdown';
 import {
   backgroundOptions,
   modernStyleOptions,
@@ -268,22 +269,7 @@ export default function IdPhotoPreview({
             {selectedStyle === 'traditional' ? (
               <div className={styles.optionBlock}>
                 <strong>选择证件照背景</strong>
-                <div className={styles.swatchRow}>
-                  {(Object.keys(backgroundOptions) as BackgroundKey[]).map((key) => (
-                    <button
-                      aria-pressed={key === selectedBackground}
-                      className={`${styles.swatchOption} ${key === selectedBackground ? styles.swatchActive : ''}`}
-                      key={key}
-                      onClick={() => setSelectedBackground(key)}
-                      style={{ '--swatch': backgroundOptions[key].value } as CSSProperties}
-                      type="button"
-                    >
-                      <i aria-hidden="true" />
-                      <span>{backgroundOptions[key].label}</span>
-                    </button>
-                  ))}
-                </div>
-                <p>{selectedBackgroundCopy.copy}</p>
+                <GlassDropdown label="证件照背景" value={selectedBackground} options={(Object.keys(backgroundOptions) as BackgroundKey[]).map((key) => ({ value: key, label: backgroundOptions[key].label }))} onChange={setSelectedBackground} />
               </div>
             ) : null}
 
