@@ -109,7 +109,9 @@ export default function IdPhotoOptimizationPage() {
   const [freeCropArea, setFreeCropArea] = useState<CropArea>({ x: 18, y: 12, width: 64, height: 72 });
   const [exportError, setExportError] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
+  const [generationProgress, setGenerationProgress] = useState(0);
   const [resultReady, setResultReady] = useState(false);
+  const [showingOriginal, setShowingOriginal] = useState(false);
 
   const previewImageUrl = useMemo(() => previewUrl, [previewUrl]);
 
@@ -123,12 +125,14 @@ export default function IdPhotoOptimizationPage() {
     if (!generatedImageUrl) return;
 
     setGeneratedImageUrl('');
+    setShowingOriginal(false);
     setResultReady(false);
     setExportError('');
   }, [previewUrl, selectedBackground, selectedModernStyle, selectedStyle, customPrompt]);
 
   async function handlePhotoChange(event: ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
+    event.target.value = '';
 
     if (previewUrl) URL.revokeObjectURL(previewUrl);
 
@@ -137,6 +141,7 @@ export default function IdPhotoOptimizationPage() {
       setPreviewUrl('');
       setSourceImageDataUrl('');
       setGeneratedImageUrl('');
+      setShowingOriginal(false);
       return;
     }
 
@@ -146,6 +151,7 @@ export default function IdPhotoOptimizationPage() {
       setPreviewUrl('');
       setSourceImageDataUrl('');
       setGeneratedImageUrl('');
+      setShowingOriginal(false);
       setResultReady(false);
       setExportError(`这张照片有 ${(file.size / 1024 / 1024).toFixed(1)}MB，超过 8MB 上限。请压缩或换一张后再上传。`);
       return;
@@ -155,6 +161,7 @@ export default function IdPhotoOptimizationPage() {
     setPreviewUrl(URL.createObjectURL(file));
     setSourceImageDataUrl('');
     setGeneratedImageUrl('');
+    setShowingOriginal(false);
     setExportError('');
     setResultReady(false);
 
@@ -169,10 +176,17 @@ export default function IdPhotoOptimizationPage() {
     if (!previewImageUrl || isProcessing) return;
 
     setIsProcessing(true);
-    setResultReady(false);
-    setGeneratedImageUrl('');
+    setGenerationProgress(0);
     setExportError('');
-
+    setShowingOriginal(false);
+    const startedAt = performance.now();
+    let completed = false;
+    const progressTimer = window.setInterval(() => {
+      const elapsed = performance.now() - startedAt;
+      // The image API returns no progress events; keep this as an honest estimate and
+      // reserve the final 5% for a confirmed successful response.
+      setGenerationProgress(Math.min(95, Math.round(95 * (1 - Math.exp(-elapsed / 24000)))));
+    }, 250);
 
     try {
       if (!sourceImageDataUrl) throw new Error('照片正在准备中，请稍后再试。');
@@ -194,10 +208,15 @@ export default function IdPhotoOptimizationPage() {
 
       setGeneratedImageUrl(payload.imageUrl);
       setResultReady(true);
+      completed = true;
+      setGenerationProgress(100);
+      await new Promise((resolve) => window.setTimeout(resolve, 450));
     } catch (error) {
       setExportError(error instanceof Error ? error.message : '生成失败，请重新上传照片后再试。');
     } finally {
+      window.clearInterval(progressTimer);
       setIsProcessing(false);
+      if (!completed) setGenerationProgress(0);
     }
   }
 
@@ -230,7 +249,13 @@ export default function IdPhotoOptimizationPage() {
         <div className={styles.studioGrid}>
           <PhotoUploadPanel
             fileName={fileName}
+            freeCropArea={freeCropArea}
+            generatedImageUrl={generatedImageUrl}
+            isProcessing={isProcessing}
             previewImageUrl={previewImageUrl}
+            resultReady={resultReady}
+            selectedSize={selectedSize}
+            showingOriginal={showingOriginal}
             selectedStyle={selectedStyle}
             selectedFormLabel={selectedStyle === 'traditional' ? backgroundOptions[selectedBackground].label : selectedStyle === 'modern' ? modernStyleOptions[selectedModernStyle].label : '自定义描述'}
             onSelectStyle={(style) => {
@@ -243,6 +268,8 @@ export default function IdPhotoOptimizationPage() {
               setSelectedStyle(style);
             }}
             onPhotoChange={handlePhotoChange}
+            onToggleOriginal={() => setShowingOriginal((current) => !current)}
+            setFreeCropArea={setFreeCropArea}
           />
           <div className={styles.settingsCard}>
             <h2>生成设置</h2>
@@ -272,24 +299,21 @@ export default function IdPhotoOptimizationPage() {
             </div> : null}
         <IdPhotoPreview
           fileName={fileName}
-          freeCropArea={freeCropArea}
           generatedImageUrl={generatedImageUrl}
           customPrompt={customPrompt}
           exportError={exportError}
           isProcessing={isProcessing}
+          generationProgress={generationProgress}
           onDownload={handleDownload}
           onOptimize={handleOptimize}
           previewImageUrl={previewImageUrl}
           resultReady={resultReady}
           selectedBackground={selectedBackground}
           selectedModernStyle={selectedModernStyle}
-          selectedSize={selectedSize}
           selectedStyle={selectedStyle}
           setCustomPrompt={setCustomPrompt}
-          setFreeCropArea={setFreeCropArea}
           setSelectedBackground={setSelectedBackground}
           setSelectedModernStyle={setSelectedModernStyle}
-          setSelectedSize={handleSelectSize}
         />
           </div>
         </div>

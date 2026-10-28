@@ -51,6 +51,9 @@ function buildIdPhotoPrompt(input: PhotoEnhanceRequest) {
   const style = input.style === 'modern' ? 'modern, polished but still professional' : 'standard, formal and trustworthy';
   const background = input.style === 'traditional' ? input.background || 'clean blue' : 'clean professional studio background';
   const custom = input.style === 'custom' && input.customPrompt?.trim() ? `User preference: ${input.customPrompt.trim()}` : '';
+  const traditionalPose = input.style === 'traditional'
+    ? 'For the traditional ID photo, re-pose the subject into a new upright, symmetrical, front-facing head-and-shoulders portrait. Center the head and torso on the vertical axis; level the head, eyes, and shoulders; face the camera directly with both shoulders visible and evenly aligned. Replace any casual lean, head tilt, side-facing angle, selfie perspective, raised arm, hand gesture, or cropped shoulder from the source photo. Do not copy the original pose or framing. Keep the person recognizable while changing only pose, framing, clothing as needed for a formal ID photo, lighting, and background.'
+    : '';
 
   return [
     'Use the supplied photo as the only identity reference.',
@@ -58,6 +61,7 @@ function buildIdPhotoPrompt(input: PhotoEnhanceRequest) {
     'Preserve the same person identity, facial features, age, hairstyle, skin tone, and overall likeness.',
     'Front-facing head-and-shoulders composition, centered framing, natural expression, clean lighting, realistic photography.',
     `Visual direction: ${style}. Background: ${background}.`,
+    traditionalPose,
     `Target output: ${input.size || 'resume portrait'} ratio.`,
     'Do not add another person, text, logo, watermark, decorative objects, exaggerated beauty effects, or altered identity.',
     custom,

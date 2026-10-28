@@ -1,127 +1,124 @@
 'use client';
 
-import { FormEvent, useEffect, useMemo, useRef, useState } from 'react';
+import { type FormEvent, useEffect, useMemo, useRef, useState } from 'react';
 import SiteShell from '../components/SiteShell';
 import ChatPanel from './ChatPanel';
-import { defaultMessages, type Draft, type Message } from './chatMessages';
+import { createChatMessageId } from './chatId';
+import type { Draft, Message } from './chatMessages';
+import { initialQaSession, type QaSessionState } from '../../lib/ai/qaWorkflowTypes';
 
-const QA_STORAGE_KEY = 'offerGetQaDraft';
+const QA_DRAFT_KEY = 'offerGetQaDraft';
+const QA_SESSION_KEY = 'offerGetQaInterviewV2';
+
+type Action = 'start' | 'reply' | 'beginInterview' | 'finishInterview';
+type ResponsePayload = { draft?: Draft; state?: QaSessionState; reply?: string; scorecard?: Message['scorecard']; error?: string };
 
 export default function QaChatPage() {
-  const [draft, setDraft] = useState<Draft | null>(null);
+  const [draft, setDraft] = useState<Draft>({});
+  const [session, setSession] = useState<QaSessionState>(initialQaSession);
+  const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
-  const [messages, setMessages] = useState<Message[]>(defaultMessages);
   const [isSending, setIsSending] = useState(false);
-  const inputRef = useRef<HTMLInputElement>(null);
-  const threadEndRef = useRef<HTMLDivElement>(null);
-  const [sentCount, setSentCount] = useState(0);
-
-  useEffect(() => {
-    if (sentCount === 0) return;
-    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    threadEndRef.current?.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'end' });
-  }, [sentCount]);
-
-  useEffect(() => {
-    try {
-      const savedDraft = JSON.parse(localStorage.getItem(QA_STORAGE_KEY) || 'null') as Draft | null;
-      setDraft(savedDraft);
-      if (savedDraft?.company || savedDraft?.role) {
-        setMessages((currentMessages) =>
-          currentMessages.map((message) =>
-            message.id === 'ai-intro'
-              ? {
-                  ...message,
-                  content: `我先帮你快速梳理一下。你现在想投的是 ${savedDraft.company || '目标公司'} 的 ${
-                    savedDraft.role || '目标岗位'
-                  }，如果你已经有一段简历内容，也可以直接发给我。`,
-                }
-              : message,
-          ),
-        );
-      }
-    } catch {
-      setDraft(null);
-    }
-  }, []);
+  const [hydrated, setHydrated] = useState(false);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
+  const initialized = useRef(false);
 
   const jobTitle = useMemo(() => {
-    if (draft?.company && draft?.role) {
-      return `${draft.company} / ${draft.role}`;
-    }
-    return '小红书 / 产品运营实习生';
+    if (draft.company && draft.role) return `${draft.company} / ${draft.role}`;
+    return draft.role || '模拟面试';
   }, [draft]);
 
-  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    const text = input.trim();
-    if (!text || isSending) return;
+  useEffect(() => {
+    if (initialized.current) return;
+    initialized.current = true;
+    let savedDraft: Draft = {};
+    try {
+      const parsed = JSON.parse(localStorage.getItem(QA_DRAFT_KEY) || '{}') as Draft;
+      savedDraft = {
+        company: typeof parsed.company === 'string' ? parsed.company.trim() : '',
+        role: typeof parsed.role === 'string' ? parsed.role.trim() : '',
+        resume: typeof parsed.resume === 'string' ? parsed.resume.trim() : '',
+      };
+      setDraft(savedDraft);
+      const saved = JSON.parse(localStorage.getItem(QA_SESSION_KEY) || 'null') as {
+        context?: string; state?: QaSessionState; messages?: Message[]; draft?: Draft;
+      } | null;
+      if (saved?.context === JSON.stringify(savedDraft) && saved.state && Array.isArray(saved.messages) && saved.messages.some((message) => !message.notice)) {
+        setDraft(saved.draft || savedDraft);
+        setSession(saved.state);
+        setMessages(saved.messages);
+        setHydrated(true);
+        return;
+      }
+    } catch {
+      // An invalid local snapshot starts a fresh interview.
+    }
+    setHydrated(true);
+    void runAction('start', '', savedDraft, initialQaSession, []);
+  }, []);
 
-    const history = messages
-      .filter((message) => !message.example && !message.notice)
-      .slice(-12)
-      .map(({ role, content }) => ({ role, content }));
-    const userMessage: Message = {
-      id: `user-${Date.now()}`,
-      role: 'user',
-      content: text,
-    };
+  useEffect(() => {
+    if (!hydrated || isSending || !messages.some((message) => !message.notice)) return;
+    try {
+      const original = JSON.parse(localStorage.getItem(QA_DRAFT_KEY) || '{}') as Draft;
+      localStorage.setItem(QA_SESSION_KEY, JSON.stringify({
+        context: JSON.stringify({ company: original.company?.trim() || '', role: original.role?.trim() || '', resume: original.resume?.trim() || '' }),
+        draft,
+        state: session,
+        messages,
+      }));
+    } catch {
+      // The current conversation remains usable if storage is unavailable.
+    }
+  }, [draft, hydrated, isSending, messages, session]);
 
-    setMessages((currentMessages) => [...currentMessages.filter((message) => !message.notice), userMessage]);
-    setInput('');
+  async function runAction(action: Action, text: string, currentDraft = draft, currentState = session, currentMessages = messages) {
+    const cleanMessages = currentMessages.filter((message) => !message.notice);
+    const userMessage: Message | null = action === 'reply' ? { id: createChatMessageId('user'), role: 'user', content: text } : null;
+    if (userMessage) setMessages([...cleanMessages, userMessage]);
     setIsSending(true);
-    setSentCount((count) => count + 1);
-
     try {
       const response = await fetch('/api/qa-chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ draft: draft || {}, history, message: text }),
+        body: JSON.stringify({
+          action,
+          draft: currentDraft,
+          state: currentState,
+          history: cleanMessages.slice(-12).map(({ role, content }) => ({ role, content })),
+          message: text,
+        }),
       });
-      const payload = (await response.json().catch(() => null)) as {
-        error?: string;
-        reply?: string;
-        suggestions?: string[];
-      } | null;
-
-      if (!response.ok || !payload?.reply) {
-        throw new Error(payload?.error || 'AI 回复暂时不可用，请稍后再试。');
-      }
-
-      const reply = payload.reply;
-      const suggestions = Array.isArray(payload.suggestions)
-        ? payload.suggestions.filter((suggestion): suggestion is string => typeof suggestion === 'string' && Boolean(suggestion.trim()))
-        : [];
-      setMessages((currentMessages) => [
-        ...currentMessages,
-        {
-          id: `ai-${Date.now()}`,
-          role: 'ai',
-          content: reply,
-          quickCard: suggestions.length
-            ? { title: '你还可以继续问', items: suggestions.slice(0, 3), suggestions: true }
-            : undefined,
-        },
-      ]);
+      const payload = (await response.json().catch(() => null)) as ResponsePayload | null;
+      if (!response.ok || !payload?.reply || !payload.state) throw new Error(payload?.error || 'AI 面试暂时不可用，请稍后重试。');
+      setDraft(payload.draft || currentDraft);
+      setSession(payload.state);
+      setMessages([...cleanMessages, ...(userMessage ? [userMessage] : []), {
+        id: createChatMessageId('ai'),
+        role: 'ai',
+        content: payload.reply,
+        scorecard: payload.scorecard,
+      }]);
+      setInput('');
     } catch (error) {
-      setMessages((currentMessages) => [
-        ...currentMessages,
-        {
-          id: `notice-${Date.now()}`,
-          role: 'ai',
-          notice: true,
-          content: error instanceof Error ? error.message : 'AI 回复暂时不可用，请稍后再试。',
-        },
-      ]);
+      setMessages([...cleanMessages, {
+        id: createChatMessageId('notice'),
+        role: 'ai',
+        notice: true,
+        content: error instanceof Error ? error.message : 'AI 面试暂时不可用，请稍后重试。',
+      }]);
+      if (userMessage) setInput(text);
     } finally {
       setIsSending(false);
-      setSentCount((count) => count + 1);
     }
   }
 
-  function handlePickSuggestion(text: string) {
-    setInput(text);
-    inputRef.current?.focus();
+  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const text = input.trim();
+    if (!text || isSending) return;
+    setInput('');
+    void runAction('reply', text);
   }
 
   return (
@@ -130,12 +127,15 @@ export default function QaChatPage() {
         input={input}
         inputRef={inputRef}
         isSending={isSending}
+        canBeginInterview={Boolean(draft.role)}
         jobTitle={jobTitle}
         messages={messages}
+        onBeginInterview={() => { if (!isSending) void runAction('beginInterview', ''); }}
+        onFinishInterview={() => { if (!isSending) void runAction('finishInterview', ''); }}
         onInputChange={setInput}
-        onPickSuggestion={handlePickSuggestion}
+        onRetry={() => { if (!isSending) void runAction('start', '', draft, initialQaSession, []); }}
         onSubmit={handleSubmit}
-        threadEndRef={threadEndRef}
+        session={session}
       />
     </SiteShell>
   );

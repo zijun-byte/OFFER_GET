@@ -14,6 +14,12 @@
 .page .dropzoneContent h2 { font-size: 17px; margin: 26px 0 8px; }
 .page .dropzoneContent p { font-size: 13px; }
 .page .dropzoneActions { justify-content: center; }
+.photoFrameActions { position: absolute; z-index: 5; right: 14px; bottom: 14px; display: flex; align-items: center; gap: 8px; }
+.originalPhotoButton, .changePhotoButton { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 36px; padding: 0 11px; border: 1px solid rgba(255,255,255,.8); border-radius: 999px; background: rgba(255,255,255,.88); color: #145f3b; font: inherit; font-size: 12px; font-weight: 700; box-shadow: 0 5px 18px rgba(18,55,39,.14); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); cursor: pointer; }
+.originalPhotoButton svg { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.photoRenderStatus { position: absolute; z-index: 4; left: 50%; bottom: 16px; display: flex; align-items: center; gap: 8px; max-width: calc(100% - 32px); padding: 9px 14px; border: 1px solid rgba(255,255,255,.75); border-radius: 999px; background: rgba(255,255,255,.88); color: #325746; font-size: 12px; box-shadow: 0 6px 22px rgba(18,55,39,.12); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); transform: translateX(-50%); }
+.statusSpinner { width: 14px; height: 14px; flex: 0 0 14px; border: 2px solid #c8e7d6; border-top-color: #10a366; border-radius: 50%; animation: renderOrbit .8s linear infinite; }
+.photoRendering::after { content: ""; position: absolute; inset: 0; z-index: 3; border: 1px solid rgba(16,163,102,.56); border-radius: inherit; pointer-events: none; animation: photoFramePulse 1.8s ease-in-out infinite; }
 .page .uploadIcon { position: relative; width: 220px; height: 220px; border-radius: 50%; background: #ccf0db; box-shadow: none; border: 0; }
 .uploadIcon span { position: absolute; width: 78px; height: 78px; border-radius: 50%; background: #12a163; top: 40px; left: 71px; }
 .uploadIcon i { position: absolute; width: 142px; height: 72px; border-radius: 70px; background: #12a163; top: 113px; left: 39px; }
@@ -23,6 +29,14 @@
 .settingsCard .generationWorkbench { display: block; border: 0; background: none; box-shadow: none; padding: 0; }
 .settingsCard .modePanel { border: 0; padding: 0; background: white; box-shadow: none; }
 .settingsCard .optimizeButton { width: 100%; border-radius: 23px; background: #131c1f; box-shadow: none; font-size: 14px; min-height: 46px; }
+.settingsCard .optimizeButtonBusy { position: relative; isolation: isolate; overflow: visible; }
+.generationProgressTrack { position: absolute; inset: -4px; z-index: 1; pointer-events: none; }
+.generationProgressTrack svg { display: block; width: 100%; height: 100%; overflow: visible; }
+.generationProgressBase, .generationProgressValue { fill: none; vector-effect: non-scaling-stroke; }
+.generationProgressBase { stroke: rgba(16,163,102,.2); stroke-width: 2; }
+.generationProgressValue { stroke: #10a366; stroke-width: 3; stroke-linecap: round; stroke-dasharray: 100; transition: stroke-dashoffset 260ms linear; }
+.settingsCard .optimizeButtonBusy:disabled { background: #b9c8bf; color: #fff; cursor: wait; box-shadow: none; }
+.settingsCard .secondaryButton { width: 100%; min-height: 42px; }
 .settingsCard .resultWorkbench { display: flex; flex-direction: column; gap: 16px; }
 .settingsCard .cropRail { display: flex; flex-wrap: wrap; }
 .settingsCard .resultPortrait { max-width: 100%; }
@@ -271,10 +285,16 @@
 
 .fileInput {
   position: absolute;
-  inset: 0;
-  z-index: 2;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  clip-path: inset(50%);
+  border: 0;
   opacity: 0;
-  cursor: pointer;
+  pointer-events: none;
 }
 
 .uploadIcon {
@@ -1294,6 +1314,8 @@
 @keyframes statusArrive { from { transform: translateY(5px) scale(.97); opacity: .3; } to { transform: none; opacity: 1; } }
 @keyframes checkDraw { from { stroke-dashoffset: 18; } to { stroke-dashoffset: 0; } }
 @keyframes glassArrive { from { transform: translateY(-5px) scale(.98); opacity: 0; } to { transform: none; opacity: 1; } }
+@keyframes renderOrbit { to { transform: rotate(1turn); } }
+@keyframes photoFramePulse { 50% { opacity: .35; } }
 @media (min-width: 981px) and (min-height: 600px) {
   .page { width: 100%; padding-bottom: 0; }
   .studioGrid { height: calc(100dvh - var(--header-h) - 80px); max-height: 650px; }
@@ -1304,6 +1326,7 @@
 }
 @media (max-width: 980px) { .studioGrid { grid-template-columns: 1fr; } }
 @media (prefers-reduced-motion: reduce) { .uploadStatusReady, .uploadStatusReady path, .glassMenu { animation: none; } }
+@media (prefers-reduced-motion: reduce) { .statusSpinner, .photoRendering::after { animation: none; } .generationProgressValue { transition: none; } }
 
 .mobileModeChooser, .mobileFormStatus, .mobileSettingsGrid { display: none; }
 

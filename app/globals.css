@@ -126,3 +126,9 @@ textarea::placeholder {
     transition-duration: 0.01ms !important;
   }
 }
+@media (max-width: 760px) {
+  body[data-qa-keyboard='true'] main > nav[aria-label='功能导航（小屏）'],
+  body[data-qa-keyboard='true'] main > div > header {
+    visibility: hidden;
+  }
+}
