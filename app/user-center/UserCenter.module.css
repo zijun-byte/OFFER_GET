@@ -21,6 +21,7 @@
 .workGrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 12px; margin-top: 16px; }
 .workCard { padding: 10px; border: 1px solid var(--line); border-radius: 16px; background: #fff; }
 .workCard img { width: 100%; aspect-ratio: 4 / 5; object-fit: cover; border-radius: 10px; }
+.workPlaceholder { display: grid; place-items: center; width: 100%; aspect-ratio: 4 / 5; border-radius: 10px; background: var(--green-soft); color: var(--green-dark); font-weight: 700; }
 .workCard span, .workCard small { display: block; margin-top: 5px; }
 .workCard small { color: var(--ink-soft); }
 .workActions { display: flex; justify-content: space-between; margin-top: 10px; }

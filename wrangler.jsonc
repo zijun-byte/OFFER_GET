@@ -10,5 +10,7 @@
     "assets":  {
                    "directory":  ".open-next/assets",
                    "binding":  "ASSETS"
-               }
+               },
+    "kv_namespaces": [{ "binding": "PHOTO_JOBS", "id": "ffbc72ee42f840a7bf156aa49df4fb3c" }],
+    "queues": { "producers": [{ "binding": "PHOTO_QUEUE", "queue": "offerget-photo-jobs" }] }
 }

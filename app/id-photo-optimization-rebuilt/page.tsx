@@ -15,7 +15,7 @@ import {
 } from './idPhotoContent';
 import PhotoUploadPanel from './PhotoUploadPanel';
 import GlassDropdown from './GlassDropdown';
-import { savePhotoWork } from '../../lib/photo/localWorks';
+import type { PhotoJob } from '../../lib/photo/jobTypes';
 
 const MAX_PHOTO_BYTES = 8 * 1024 * 1024;
 
@@ -113,6 +113,7 @@ export default function IdPhotoOptimizationPage() {
   const [generationProgress, setGenerationProgress] = useState(0);
   const [resultReady, setResultReady] = useState(false);
   const [showingOriginal, setShowingOriginal] = useState(false);
+  const [activeJobId, setActiveJobId] = useState('');
 
   const previewImageUrl = useMemo(() => previewUrl, [previewUrl]);
 
@@ -121,6 +122,50 @@ export default function IdPhotoOptimizationPage() {
       if (previewUrl) URL.revokeObjectURL(previewUrl);
     };
   }, [previewUrl]);
+
+  useEffect(() => {
+    const rememberedId = window.localStorage.getItem('offerget-active-photo-job');
+    if (rememberedId && /^[a-f0-9-]{36}$/.test(rememberedId)) {
+      setActiveJobId(rememberedId);
+      setIsProcessing(true);
+    }
+    fetch('/api/photo/jobs').then((response) => response.json()).then((data: { jobs?: PhotoJob[] }) => {
+      const latest = data.jobs?.find((job) => job.status === 'queued' || job.status === 'processing');
+      if (latest && !rememberedId) { setActiveJobId(latest.id); setIsProcessing(true); }
+    }).catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    if (!activeJobId) return;
+    let cancelled = false;
+    const poll = async () => {
+      try {
+        const response = await fetch(`/api/photo/jobs/${activeJobId}`, { cache: 'no-store' });
+        if (!response.ok) throw new Error('无法读取任务状态，请到用户中心查看。');
+        const payload = await response.json() as { job: PhotoJob; imageUrl?: string };
+        if (cancelled || payload.job.status === 'queued' || payload.job.status === 'processing') return;
+        window.localStorage.removeItem('offerget-active-photo-job');
+        setActiveJobId('');
+        setIsProcessing(false);
+        if (payload.job.status === 'completed' && payload.imageUrl) {
+          setGeneratedImageUrl(payload.imageUrl);
+          setResultReady(true);
+          setGenerationProgress(100);
+        } else setExportError(payload.job.error || '生成失败，请重新提交。');
+      } catch (error) {
+        if (!cancelled) setExportError(error instanceof Error ? error.message : '任务状态暂时不可用。');
+      }
+    };
+    void poll();
+    const timer = window.setInterval(() => void poll(), 2500);
+    return () => { cancelled = true; window.clearInterval(timer); };
+  }, [activeJobId]);
+
+  useEffect(() => {
+    if (!isProcessing) return;
+    const timer = window.setInterval(() => setGenerationProgress((value) => Math.min(95, value + Math.max(1, Math.round((95 - value) / 18)))), 1000);
+    return () => window.clearInterval(timer);
+  }, [isProcessing]);
 
   useEffect(() => {
     if (!generatedImageUrl) return;
@@ -134,6 +179,9 @@ export default function IdPhotoOptimizationPage() {
   async function handlePhotoChange(event: ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
     event.target.value = '';
+    window.localStorage.removeItem('offerget-active-photo-job');
+    setActiveJobId('');
+    setIsProcessing(false);
 
     if (previewUrl) URL.revokeObjectURL(previewUrl);
 
@@ -180,19 +228,10 @@ export default function IdPhotoOptimizationPage() {
     setGenerationProgress(0);
     setExportError('');
     setShowingOriginal(false);
-    const startedAt = performance.now();
-    let completed = false;
-    const progressTimer = window.setInterval(() => {
-      const elapsed = performance.now() - startedAt;
-      // The image API returns no progress events; keep this as an honest estimate and
-      // reserve the final 5% for a confirmed successful response.
-      setGenerationProgress(Math.min(95, Math.round(95 * (1 - Math.exp(-elapsed / 24000)))));
-    }, 250);
-
     try {
       if (!sourceImageDataUrl) throw new Error('照片正在准备中，请稍后再试。');
 
-      const response = await fetch('/api/photo/enhance', {
+      const response = await fetch('/api/photo/jobs', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -204,25 +243,14 @@ export default function IdPhotoOptimizationPage() {
           style: selectedStyle,
         }),
       });
-      const payload = (await response.json()) as { error?: string; imageUrl?: string };
-      if (!response.ok || !payload.imageUrl) throw new Error(payload.error || '图像模型没有返回结果。');
-
-      setGeneratedImageUrl(payload.imageUrl);
-      setResultReady(true);
-      try {
-        await savePhotoWork(payload.imageUrl, selectedStyle, sizeOptions[selectedSize].label);
-      } catch {
-        setExportError('图片已生成，但当前浏览器无法暂存作品；请立即下载。');
-      }
-      completed = true;
-      setGenerationProgress(100);
-      await new Promise((resolve) => window.setTimeout(resolve, 450));
+      const payload = (await response.json()) as { error?: string; job?: PhotoJob };
+      if (!response.ok || !payload.job) throw new Error(payload.error || '创建任务失败。');
+      window.localStorage.setItem('offerget-active-photo-job', payload.job.id);
+      setActiveJobId(payload.job.id);
     } catch (error) {
       setExportError(error instanceof Error ? error.message : '生成失败，请重新上传照片后再试。');
-    } finally {
-      window.clearInterval(progressTimer);
       setIsProcessing(false);
-      if (!completed) setGenerationProgress(0);
+      setGenerationProgress(0);
     }
   }
 

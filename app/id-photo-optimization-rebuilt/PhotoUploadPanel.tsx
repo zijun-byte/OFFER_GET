@@ -99,7 +99,7 @@ export default function PhotoUploadPanel({ fileName, freeCropArea, generatedImag
           {displayImageUrl ? <img src={displayImageUrl} alt={resultReady && !showingOriginal ? 'AI 生成证件照' : '上传照片预览'} /> : null}
           {displayImageUrl ? (
             <div className={styles.photoFrameActions}>
-              {resultReady && generatedImageUrl ? (
+              {resultReady && generatedImageUrl && previewImageUrl ? (
                 <button className={styles.originalPhotoButton} type="button" onClick={onToggleOriginal} aria-label={showingOriginal ? '查看 AI 生成结果' : '查看原始照片'} title={showingOriginal ? '查看 AI 结果' : '查看原图'}>
                   <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="4.5" width="17" height="15" rx="2.5" /><circle cx="9" cy="10" r="1.6" /><path d="m5 17 4.5-4 3.2 2.7 2.1-1.8L19 18" /></svg>
                   <span>{showingOriginal ? 'AI 结果' : '看原图'}</span>
