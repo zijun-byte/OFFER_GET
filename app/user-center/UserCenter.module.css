@@ -15,3 +15,13 @@
 .link small { margin-top: 5px; color: var(--ink-soft); font-size: 12px; }
 .link > span:last-child { color: var(--green-dark); font-size: 21px; }
 @media (max-width: 760px) { .center { margin: 16px auto; } .notice { margin-top: 24px; } }
+.works { margin-top: 28px; color: var(--ink); }
+.works h2 { font-size: 20px; }
+.works > p { color: var(--ink-soft); font-size: 13px; line-height: 1.6; }
+.workGrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 12px; margin-top: 16px; }
+.workCard { padding: 10px; border: 1px solid var(--line); border-radius: 16px; background: #fff; }
+.workCard img { width: 100%; aspect-ratio: 4 / 5; object-fit: cover; border-radius: 10px; }
+.workCard span, .workCard small { display: block; margin-top: 5px; }
+.workCard small { color: var(--ink-soft); }
+.workActions { display: flex; justify-content: space-between; margin-top: 10px; }
+.workActions a, .workActions button { border: 0; background: none; color: var(--green-dark); font: inherit; font-weight: 700; cursor: pointer; }

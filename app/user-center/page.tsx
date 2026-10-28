@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import SiteShell from '../components/SiteShell';
 import styles from './UserCenter.module.css';
+import PhotoWorks from './PhotoWorks';
 
 const destinations = [
   { title: '证件照优化', description: '上传照片，调整尺寸与形式。', href: '/id-photo-optimization-rebuilt' },
@@ -22,6 +23,7 @@ export default function UserCenter() {
         <div className={styles.links}>
           {destinations.map((item) => <Link key={item.href} href={item.href} className={styles.link}><span><strong>{item.title}</strong><small>{item.description}</small></span><span aria-hidden="true">↗</span></Link>)}
         </div>
+        <PhotoWorks />
       </section>
     </SiteShell>
   );

@@ -34,9 +34,10 @@ export async function POST(request: Request) {
       model: agent.model,
       prompt: [agent.prompt, buildIdPhotoPrompt(body || {})].join('\n\n'),
     });
+    const storedImage = await materializeImage(imageUrl);
     return NextResponse.json({
       agent: { id: agent.id, model: agent.model, promptVersion: agent.promptVersion },
-      imageUrl,
+      imageUrl: storedImage,
       status: 'success',
     });
   } catch (error) {
@@ -45,6 +46,19 @@ export async function POST(request: Request) {
       { status: 502 },
     );
   }
+}
+
+async function materializeImage(value: string): Promise<string> {
+  if (value.startsWith('data:image/')) return value;
+  const url = new URL(value);
+  if (url.protocol !== 'https:') throw new Error('图像模型返回了无效的图片地址。');
+  const response = await fetch(url, { signal: AbortSignal.timeout(15_000) });
+  if (!response.ok) throw new Error('生成结果下载失败，请重试。');
+  const mime = response.headers.get('content-type')?.split(';')[0] || '';
+  if (!['image/png', 'image/jpeg', 'image/webp'].includes(mime)) throw new Error('图像模型返回的文件格式无效。');
+  const bytes = Buffer.from(await response.arrayBuffer());
+  if (bytes.length > 8 * 1024 * 1024) throw new Error('生成图片超过本地保存上限。');
+  return `data:${mime};base64,${bytes.toString('base64')}`;
 }
 
 function buildIdPhotoPrompt(input: PhotoEnhanceRequest) {

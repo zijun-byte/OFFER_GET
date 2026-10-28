@@ -15,6 +15,7 @@ import {
 } from './idPhotoContent';
 import PhotoUploadPanel from './PhotoUploadPanel';
 import GlassDropdown from './GlassDropdown';
+import { savePhotoWork } from '../../lib/photo/localWorks';
 
 const MAX_PHOTO_BYTES = 8 * 1024 * 1024;
 
@@ -208,6 +209,11 @@ export default function IdPhotoOptimizationPage() {
 
       setGeneratedImageUrl(payload.imageUrl);
       setResultReady(true);
+      try {
+        await savePhotoWork(payload.imageUrl, selectedStyle, sizeOptions[selectedSize].label);
+      } catch {
+        setExportError('图片已生成，但当前浏览器无法暂存作品；请立即下载。');
+      }
       completed = true;
       setGenerationProgress(100);
       await new Promise((resolve) => window.setTimeout(resolve, 450));
