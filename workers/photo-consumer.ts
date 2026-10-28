@@ -22,18 +22,19 @@ export default {
         continue;
       }
       if (await env.PHOTO_JOBS.get(photoResultKey(id))) {
-        await env.PHOTO_JOBS.put(key, JSON.stringify({ ...job, status: 'completed', expiresAt: Date.now() + PHOTO_RESULT_TTL * 1000 }), { expirationTtl: PHOTO_RESULT_TTL });
+        await env.PHOTO_JOBS.put(key, JSON.stringify({ ...job, status: 'completed', progress: 100, expiresAt: Date.now() + PHOTO_RESULT_TTL * 1000 }), { expirationTtl: PHOTO_RESULT_TTL });
         await env.PHOTO_JOBS.delete(photoInputKey(id));
         continue;
       }
       if (!rawInput) {
         if (message.attempts < 3) { message.retry({ delaySeconds: 15 }); continue; }
-        await env.PHOTO_JOBS.put(key, JSON.stringify({ ...job, status: 'failed', error: '原图暂存已过期，请重新提交。' }), { expirationTtl: PHOTO_RESULT_TTL });
+        await env.PHOTO_JOBS.put(key, JSON.stringify({ ...job, status: 'failed', progress: 0, error: '原图暂存已过期，请重新提交。' }), { expirationTtl: PHOTO_RESULT_TTL });
         continue;
       }
 
       try {
-        await env.PHOTO_JOBS.put(key, JSON.stringify({ ...job, status: 'processing' }), { expirationTtl: PHOTO_RESULT_TTL });
+        const processingAt = Date.now();
+        await env.PHOTO_JOBS.put(key, JSON.stringify({ ...job, status: 'processing', progress: 8, processingAt }), { expirationTtl: PHOTO_RESULT_TTL });
         const response = await env.APP.fetch('https://offerget.internal/api/photo/enhance', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -42,9 +43,9 @@ export default {
         const result = await response.json() as { imageUrl?: string; error?: string };
         if (!response.ok || !result.imageUrl?.startsWith('data:image/')) throw new Error(result.error || '图像生成失败。');
         await env.PHOTO_JOBS.put(photoResultKey(id), result.imageUrl, { expirationTtl: PHOTO_RESULT_TTL });
-        await env.PHOTO_JOBS.put(key, JSON.stringify({ ...job, status: 'completed', expiresAt: Date.now() + PHOTO_RESULT_TTL * 1000 }), { expirationTtl: PHOTO_RESULT_TTL });
+        await env.PHOTO_JOBS.put(key, JSON.stringify({ ...job, status: 'completed', progress: 100, expiresAt: Date.now() + PHOTO_RESULT_TTL * 1000 }), { expirationTtl: PHOTO_RESULT_TTL });
       } catch {
-        await env.PHOTO_JOBS.put(key, JSON.stringify({ ...job, status: 'failed', error: '生成失败，请重新提交照片。' }), { expirationTtl: PHOTO_RESULT_TTL });
+        await env.PHOTO_JOBS.put(key, JSON.stringify({ ...job, status: 'failed', progress: 0, error: '生成失败，请重新提交照片。' }), { expirationTtl: PHOTO_RESULT_TTL });
       } finally {
         await env.PHOTO_JOBS.delete(photoInputKey(id));
       }

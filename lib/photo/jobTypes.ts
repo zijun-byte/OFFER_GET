@@ -2,6 +2,9 @@ export type PhotoJobStatus = 'queued' | 'processing' | 'completed' | 'failed';
 export type PhotoJob = {
   id: string;
   status: PhotoJobStatus;
+  /** Persisted coarse progress; the image provider does not expose token-level progress. */
+  progress?: number;
+  processingAt?: number;
   createdAt: number;
   expiresAt: number;
   style: string;

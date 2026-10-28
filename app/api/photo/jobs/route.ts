@@ -38,7 +38,7 @@ export async function POST(request: NextRequest) {
     const owner = /^[a-f0-9-]{36}$/.test(request.cookies.get(COOKIE)?.value || '') ? request.cookies.get(COOKIE)!.value : crypto.randomUUID();
     const id = crypto.randomUUID();
     const createdAt = Date.now();
-    const job: PhotoJob = { id, status: 'queued', createdAt, expiresAt: createdAt + PHOTO_RESULT_TTL * 1000, style: body.style, size: String(body.size || '简历头像').slice(0, 80) };
+    const job: PhotoJob = { id, status: 'queued', progress: 0, createdAt, expiresAt: createdAt + PHOTO_RESULT_TTL * 1000, style: body.style, size: String(body.size || '简历头像').slice(0, 80) };
     const input = JSON.stringify({ image: body.image, style: body.style, size: job.size, background: String(body.background || '').slice(0, 80), modernStyle: String(body.modernStyle || '').slice(0, 80), customPrompt: String(body.customPrompt || '').slice(0, 1000) });
     await kv.put(photoInputKey(id), input, { expirationTtl: PHOTO_INPUT_TTL });
     await kv.put(photoJobKey(owner, id), JSON.stringify(job), { expirationTtl: PHOTO_RESULT_TTL });

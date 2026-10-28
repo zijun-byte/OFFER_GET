@@ -20,8 +20,7 @@ export async function GET(request: NextRequest, context: Context) {
     const owned = await ownedJob(request, context);
     if (!owned) return NextResponse.json({ error: '任务不存在或已过期。' }, { status: 404 });
     if (owned.job.status === 'queued' || owned.job.status === 'processing') startLocalPhotoJob(owned.kv, owned.owner, owned.job);
-    const imageUrl = owned.job.status === 'completed' ? await owned.kv.get(photoResultKey(owned.id)) : null;
-    return NextResponse.json({ job: owned.job, imageUrl });
+    return NextResponse.json({ job: owned.job, imageUrl: owned.job.status === 'completed' ? `/api/photo/jobs/${owned.id}/image` : null });
   } catch {
     return NextResponse.json({ error: '任务状态暂时不可用。' }, { status: 503 });
   }

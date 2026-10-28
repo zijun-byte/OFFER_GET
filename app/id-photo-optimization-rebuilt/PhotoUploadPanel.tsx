@@ -16,6 +16,7 @@ type PhotoUploadPanelProps = {
   onSelectStyle: (style: StyleKey) => void;
   onPhotoChange: (event: ChangeEvent<HTMLInputElement>) => void;
   onToggleOriginal: () => void;
+  onGeneratedImageError: () => void;
   showingOriginal: boolean;
   setFreeCropArea: (area: { height: number; width: number; x: number; y: number }) => void;
 };
@@ -28,7 +29,7 @@ const stylesList: { key: StyleKey; label: string }[] = [
   { key: 'custom', label: '自定义' },
 ];
 
-export default function PhotoUploadPanel({ fileName, freeCropArea, generatedImageUrl, isProcessing, previewImageUrl, resultReady, selectedSize, selectedStyle, selectedFormLabel, onSelectStyle, onPhotoChange, onToggleOriginal, showingOriginal, setFreeCropArea }: PhotoUploadPanelProps) {
+export default function PhotoUploadPanel({ fileName, freeCropArea, generatedImageUrl, isProcessing, previewImageUrl, resultReady, selectedSize, selectedStyle, selectedFormLabel, onSelectStyle, onPhotoChange, onToggleOriginal, onGeneratedImageError, showingOriginal, setFreeCropArea }: PhotoUploadPanelProps) {
   const displayImageUrl = resultReady && !showingOriginal ? generatedImageUrl : previewImageUrl;
   const frameRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -96,7 +97,7 @@ export default function PhotoUploadPanel({ fileName, freeCropArea, generatedImag
               </button>
             </div>
           </div>
-          {displayImageUrl ? <img src={displayImageUrl} alt={resultReady && !showingOriginal ? 'AI 生成证件照' : '上传照片预览'} /> : null}
+          {displayImageUrl ? <img src={displayImageUrl} alt={resultReady && !showingOriginal ? 'AI 生成证件照' : '上传照片预览'} onError={() => { if (resultReady && !showingOriginal) onGeneratedImageError(); }} /> : null}
           {displayImageUrl ? (
             <div className={styles.photoFrameActions}>
               {resultReady && generatedImageUrl && previewImageUrl ? (

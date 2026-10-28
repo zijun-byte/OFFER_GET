@@ -9,6 +9,7 @@ export default function PhotoWorks() {
   const [works, setWorks] = useState<PhotoWork[]>([]);
   const [jobs, setJobs] = useState<PhotoJob[]>([]);
   const [images, setImages] = useState<Record<string, string>>({});
+  const [loadingImages, setLoadingImages] = useState<Record<string, boolean>>({});
   const [error, setError] = useState('');
 
   useEffect(() => {
@@ -23,23 +24,20 @@ export default function PhotoWorks() {
   }, []);
 
   async function showResult(id: string) {
-    try {
-      const response = await fetch(`/api/photo/jobs/${id}`);
-      if (!response.ok) throw new Error();
-      const payload = await response.json() as { imageUrl?: string };
-      if (!payload.imageUrl) throw new Error();
-      setImages((current) => ({ ...current, [id]: payload.imageUrl! }));
-    } catch {
-      setError('作品读取失败，请稍后再试。');
-    }
+    setError('');
+    setLoadingImages((current) => ({ ...current, [id]: true }));
+    setImages((current) => ({ ...current, [id]: `/api/photo/jobs/${id}/image` }));
   }
 
   async function removeJob(id: string) {
+    const removed = jobs.find((job) => job.id === id);
+    setJobs((current) => current.filter((job) => job.id !== id));
+    setError('');
     try {
       const response = await fetch(`/api/photo/jobs/${id}`, { method: 'DELETE' });
       if (!response.ok) throw new Error();
-      setJobs((current) => current.filter((job) => job.id !== id));
     } catch {
+      if (removed) setJobs((current) => current.some((job) => job.id === id) ? current : [...current, removed].sort((a, b) => b.createdAt - a.createdAt));
       setError('任务删除失败，请稍后重试。');
     }
   }
@@ -58,9 +56,9 @@ export default function PhotoWorks() {
     <p>生成任务绑定当前浏览器。作品保留 7 天，上传原图在任务结束后删除。</p>
     {error ? <p role="alert">{error}</p> : null}
     {jobs.length ? <div className={styles.workGrid}>{jobs.map((job) => <article className={styles.workCard} key={job.id}>
-      {images[job.id] ? <img src={images[job.id]} alt="已生成的证件照" /> : <div className={styles.workPlaceholder}>{job.status === 'completed' ? '作品已生成' : job.status === 'failed' ? '生成失败' : '正在生成'}</div>}
+      {images[job.id] ? <img src={images[job.id]} alt="已生成的证件照" onLoad={() => setLoadingImages((current) => ({ ...current, [job.id]: false }))} onError={() => { setLoadingImages((current) => ({ ...current, [job.id]: false })); setError('作品读取失败，请稍后再试。'); }} /> : <div className={styles.workPlaceholder}>{job.status === 'completed' ? '作品已生成' : job.status === 'failed' ? '生成失败' : '正在生成'}</div>}
       <div><span>{job.size} · {job.style === 'traditional' ? '传统证件照' : job.style === 'modern' ? '新式证件照' : '自定义'}</span>{job.status === 'completed' ? <small>保留至 {new Date(job.expiresAt).toLocaleDateString('zh-CN')}</small> : job.status === 'failed' ? <small>{job.error || '请重新提交照片'}</small> : null}</div>
-      <div className={styles.workActions}>{job.status === 'completed' && !images[job.id] ? <button type="button" onClick={() => void showResult(job.id)}>查看作品</button> : null}{images[job.id] ? <a href={images[job.id]} download={`offer-get-${job.id}.png`}>下载</a> : null}{job.status === 'completed' || job.status === 'failed' ? <button type="button" onClick={() => void removeJob(job.id)}>删除</button> : null}</div>
+      <div className={styles.workActions}>{job.status === 'completed' && !images[job.id] ? <button type="button" onClick={() => void showResult(job.id)}>查看作品</button> : null}{loadingImages[job.id] ? <small>正在加载作品…</small> : null}{images[job.id] && !loadingImages[job.id] ? <a href={images[job.id]} download={`offer-get-${job.id}.png`}>下载</a> : null}{job.status === 'completed' || job.status === 'failed' ? <button type="button" onClick={() => void removeJob(job.id)}>删除</button> : null}</div>
     </article>)}</div> : null}
     {works.length ? <div className={styles.workGrid}>{works.map((work) => <article className={styles.workCard} key={work.id}>
       {/* eslint-disable-next-line @next/next/no-img-element */}
